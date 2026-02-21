@@ -11,11 +11,11 @@ import { DSPData } from "../data/dsp-data";
 
 const MINING_NODE_WIDTH = 180;
 const NODE_BASE_WIDTH = 200;
-const X_GAP = 30;
-const Y_SPACING = 180;
+const X_GAP = 60;
+const Y_SPACING = 360;
 const ROOT_START_X = 100;
 const ROOT_START_Y = 100;
-const ROOT_GAP = 80;
+const ROOT_GAP = 160;
 
 function getNodeWidth(
 	element: CalculationElement,
