@@ -18,6 +18,7 @@ import {
 	setElementToMiningSource,
 	setViewState,
 	updateNodePosition,
+	updateTotalsNodePosition,
 } from "@/lib/stores/calculator-store";
 
 export function useCalculator() {
@@ -30,6 +31,7 @@ export function useCalculator() {
 		viewState: state.viewState,
 		globalDefaults: state.globalDefaults,
 		nodePositions: state.nodePositions,
+		totalsNodePositions: state.totalsNodePositions,
 
 		addTarget,
 		clearElementSource,
@@ -41,6 +43,7 @@ export function useCalculator() {
 		setDefaultFacility,
 		setDefaultProliferator,
 		updateNodePosition,
+		updateTotalsNodePosition,
 		setViewState,
 		selectElement,
 	};

@@ -6,6 +6,7 @@ import type {
 	NodePosition,
 	ProliferatorMode,
 	RecipeType,
+	TotalsNodePosition,
 	ViewState,
 } from "../calculator/models";
 import {
@@ -57,6 +58,7 @@ const initialState: CalculatorState = {
 	},
 	elements: {},
 	nodePositions: [],
+	totalsNodePositions: [],
 	selectedElementId: null,
 	viewState: { scale: 1, translateX: 0, translateY: 0 },
 };
@@ -391,6 +393,28 @@ export function updateNodePosition(
 		}
 
 		return { ...state, nodePositions: newPositions };
+	});
+}
+
+export function updateTotalsNodePosition(
+	itemId: number,
+	x: number,
+	y: number,
+): void {
+	calculatorStore.setState((state) => {
+		const existingIndex = state.totalsNodePositions.findIndex(
+			(np) => np.itemId === itemId,
+		);
+
+		let newPositions: TotalsNodePosition[];
+		if (existingIndex >= 0) {
+			newPositions = [...state.totalsNodePositions];
+			newPositions[existingIndex] = { itemId, x, y };
+		} else {
+			newPositions = [...state.totalsNodePositions, { itemId, x, y }];
+		}
+
+		return { ...state, totalsNodePositions: newPositions };
 	});
 }
 

@@ -92,11 +92,18 @@ export interface NodePosition {
 	y: number;
 }
 
+export interface TotalsNodePosition {
+	itemId: number;
+	x: number;
+	y: number;
+}
+
 export interface CalculatorState {
 	targets: CalculationTarget[];
 	globalDefaults: GlobalDefaults;
 	viewState?: ViewState;
 	nodePositions: NodePosition[];
+	totalsNodePositions: TotalsNodePosition[];
 	elements: Record<string, CalculationElement>;
 	selectedElementId: string | null;
 }

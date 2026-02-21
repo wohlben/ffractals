@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import {
 	useCalculator,
@@ -7,7 +8,8 @@ import {
 import { DSPData } from "@/lib/data/dsp-data";
 
 export function Sidebar() {
-	const { targets, addTarget, getPerFacilityRate, removeTarget } = useCalculator();
+	const { targets, addTarget, getPerFacilityRate, removeTarget } =
+		useCalculator();
 	const resourceNeeds = useResourceNeeds();
 	const facilitySummary = useFacilitySummary();
 
@@ -22,6 +24,34 @@ export function Sidebar() {
 		<aside className="w-80 border-r border-gray-700 bg-gray-900 flex flex-col h-screen">
 			<div className="p-4 border-b border-gray-700">
 				<h2 className="font-semibold text-gray-100">Production Targets</h2>
+				<div className="mt-2 flex gap-1">
+					<Link
+						to="/calculator"
+						className="px-3 py-1 text-xs rounded"
+						activeProps={{
+							className: "px-3 py-1 text-xs rounded bg-blue-600 text-white",
+						}}
+						inactiveProps={{
+							className:
+								"px-3 py-1 text-xs rounded bg-gray-800 text-gray-400 hover:text-gray-200",
+						}}
+					>
+						Tree View
+					</Link>
+					<Link
+						to="/totals"
+						className="px-3 py-1 text-xs rounded"
+						activeProps={{
+							className: "px-3 py-1 text-xs rounded bg-amber-600 text-white",
+						}}
+						inactiveProps={{
+							className:
+								"px-3 py-1 text-xs rounded bg-gray-800 text-gray-400 hover:text-gray-200",
+						}}
+					>
+						Totals View
+					</Link>
+				</div>
 			</div>
 
 			<div className="p-4 border-b border-gray-700 space-y-2">
@@ -166,7 +196,9 @@ export function Sidebar() {
 									className="flex justify-between text-sm text-gray-300"
 								>
 									<span>{item?.Name}</span>
-									<span>×{Number.isInteger(count) ? count : count.toFixed(2)}</span>
+									<span>
+										×{Number.isInteger(count) ? count : count.toFixed(2)}
+									</span>
 								</div>
 							);
 						})}

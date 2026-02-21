@@ -9,10 +9,16 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TotalsRouteImport } from './routes/totals'
 import { Route as CalculatorRouteImport } from './routes/calculator'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DemoStoreRouteImport } from './routes/demo/store'
 
+const TotalsRoute = TotalsRouteImport.update({
+  id: '/totals',
+  path: '/totals',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CalculatorRoute = CalculatorRouteImport.update({
   id: '/calculator',
   path: '/calculator',
@@ -32,35 +38,46 @@ const DemoStoreRoute = DemoStoreRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/calculator': typeof CalculatorRoute
+  '/totals': typeof TotalsRoute
   '/demo/store': typeof DemoStoreRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/calculator': typeof CalculatorRoute
+  '/totals': typeof TotalsRoute
   '/demo/store': typeof DemoStoreRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/calculator': typeof CalculatorRoute
+  '/totals': typeof TotalsRoute
   '/demo/store': typeof DemoStoreRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/calculator' | '/demo/store'
+  fullPaths: '/' | '/calculator' | '/totals' | '/demo/store'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/calculator' | '/demo/store'
-  id: '__root__' | '/' | '/calculator' | '/demo/store'
+  to: '/' | '/calculator' | '/totals' | '/demo/store'
+  id: '__root__' | '/' | '/calculator' | '/totals' | '/demo/store'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CalculatorRoute: typeof CalculatorRoute
+  TotalsRoute: typeof TotalsRoute
   DemoStoreRoute: typeof DemoStoreRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/totals': {
+      id: '/totals'
+      path: '/totals'
+      fullPath: '/totals'
+      preLoaderRoute: typeof TotalsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/calculator': {
       id: '/calculator'
       path: '/calculator'
@@ -88,6 +105,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CalculatorRoute: CalculatorRoute,
+  TotalsRoute: TotalsRoute,
   DemoStoreRoute: DemoStoreRoute,
 }
 export const routeTree = rootRouteImport

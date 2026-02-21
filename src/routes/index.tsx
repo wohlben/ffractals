@@ -23,12 +23,20 @@ function HomePage() {
 
 				{targets.length > 0 ? (
 					<div className="space-y-4">
-						<Link
-							to="/calculator"
-							className="inline-block px-8 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
-						>
-							Open Calculator
-						</Link>
+						<div className="flex gap-4 justify-center">
+							<Link
+								to="/calculator"
+								className="inline-block px-8 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+							>
+								Open Calculator
+							</Link>
+							<Link
+								to="/totals"
+								className="inline-block px-8 py-3 bg-amber-600 text-white rounded-lg font-medium hover:bg-amber-700 transition-colors"
+							>
+								Totals View
+							</Link>
+						</div>
 
 						<div className="text-gray-400">
 							You have {targets.length} production target
