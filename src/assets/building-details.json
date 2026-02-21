@@ -1,0 +1,996 @@
+{
+  "scraped_at": "2026-02-19T17:17:06.946Z",
+  "total_buildings": 62,
+  "successful": 62,
+  "failed": 0,
+  "buildings": [
+    {
+      "name": "Tesla Tower",
+      "category": "Power Transmission",
+      "description": "The power transmission facility. Can extend the power supply range of the power grid with a certain connection length and supply area.",
+      "stats": {
+        "Connection Length": "22 m",
+        "Supply Area": "10 m",
+        "Made In": "Assembler",
+        "Hand-Make": "Replicator",
+        "Grid Size": "1×1",
+        "Stack Size": "100"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Tesla_Tower",
+      "imageName": "Icon Tesla Tower.png"
+    },
+    {
+      "name": "Wireless Power Tower",
+      "category": "Power Transmission",
+      "description": "Remote transmission facility. Can consume electricity from the power grid to charge the mecha.",
+      "stats": {
+        "Connection Length": "45 m",
+        "Supply Area": "6 m",
+        "Work Consumption": "4.80 MW",
+        "Idle Consumption": "90.0 kW",
+        "Made In": "Assembler",
+        "Hand-Make": "Replicator",
+        "Grid Size": "3×3",
+        "Stack Size": "100"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Wireless_Power_Tower",
+      "imageName": "Icon Wireless Power Tower.png"
+    },
+    {
+      "name": "Satellite Substation",
+      "category": "Power Transmission",
+      "description": "Wide-area power distribution facility. Can provide longer power transmission distances and larger power supply area.",
+      "stats": {
+        "Connection Length": "53 m",
+        "Supply Area": "26 m",
+        "Made In": "Assembler",
+        "Hand-Make": "Replicator",
+        "Idle Consumption": "360 kW",
+        "Grid Size": "3×3",
+        "Stack Size": "30"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Satellite_Substation",
+      "imageName": "Icon Satellite Substation.png"
+    },
+    {
+      "name": "Wind Turbine",
+      "category": "Power Facility",
+      "description": "The primary power facility. Can convert wind energy into electrical energy. The actual generation capacity is related to the planet's wind energy ratio.",
+      "stats": {
+        "Energy Type": "Wind",
+        "Power": "300 kW",
+        "Connection Length": "16 m",
+        "Supply Area": "7.2 m",
+        "Made In": "Assembler",
+        "Hand-Make": "Replicator",
+        "Grid Size": "3×3",
+        "Stack Size": "50"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Wind_Turbine",
+      "imageName": "Icon Wind Turbine.png"
+    },
+    {
+      "name": "Thermal Power Plant",
+      "category": "Power Facility",
+      "description": "Facility that use combustible materials (such as  coal) as fuel to generate electrical energy. Between the energy output and the calorific value of the consumed fuels has energy efficiency.",
+      "stats": {
+        "Energy Type": "Thermal",
+        "Power": "2.16 MW",
+        "Energy Efficiency": "80%",
+        "Made In": "Assembler",
+        "Hand-Make": "Replicator",
+        "Stack Size": "50"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Thermal_Power_Plant",
+      "imageName": "Icon Thermal Power Plant.png"
+    },
+    {
+      "name": "Solar Panel",
+      "category": "Power Facility",
+      "description": "Directly generate electricity using sunlight, and the actual generation capacity is related to the planet's solar energy ratio. Not working at night, use accumulators can store excess energy during the day.",
+      "stats": {
+        "Energy Type": "Photovoltaic",
+        "Basic Generation": "360 kW",
+        "Made In": "Assembler",
+        "Hand-Make": "Replicator",
+        "Grid Size": "3×3",
+        "Stack Size": "50"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Solar_Panel",
+      "imageName": "Icon Solar Panel.png"
+    },
+    {
+      "name": "Geothermal Power Station",
+      "category": "Power Facility",
+      "description": "A power generation facility using magma as an energy source. Combine multiple consecutive low-energy photons into one high-energy photon, and input energy to the grid stably. The power generation is directly related to the concentration of magma.",
+      "stats": {
+        "Energy Type": "Geothermal",
+        "Basic Generation": "4.80 MW",
+        "Made In": "Assembler",
+        "Hand-make": "Replicator",
+        "Stack Size": "50"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Geothermal_Power_Station",
+      "imageName": "Icon Geothermal Power Station.png"
+    },
+    {
+      "name": "Mini Fusion Power Station",
+      "category": "Power Facility",
+      "description": "Under the action of a high-strength, high-density magnetic field, a facility that converts the huge energy released by the controlled fusion reaction of deuterons into electrical energy.",
+      "stats": {
+        "Energy Type": "Ion Current",
+        "Power": "15.0 MW",
+        "Energy Efficiency": "1",
+        "Made In": "Assembler",
+        "Hand-Make": "Replicator",
+        "Stack Size": "50"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Mini_Fusion_Power_Plant",
+      "imageName": "Icon Mini Fusion Power Plant.png"
+    },
+    {
+      "name": "Energy Exchanger",
+      "category": "Power Transmission",
+      "description": "The power conversion facility. Can not only store the surplus electric energy in the power grid into an empty accumulator to make a full accumulator; it can also release the electric energy stored in the full accumulator.",
+      "stats": {
+        "Input Power": "54.0 MW",
+        "Output Power": "54.0 MW",
+        "Accumulated": "540.0 MJ",
+        "Made In": "Assembler",
+        "Hand-Make": "Replicator",
+        "Stack Size": "20"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Energy_Exchanger",
+      "imageName": "Icon Energy Exchanger.png"
+    },
+    {
+      "name": "Accumulator",
+      "category": "Power Storage",
+      "description": "Power storage facility. When the electricity of the power grid is surplus, it will automatically store the excess power. When the power supply is insufficient, it will automatically discharge to maintain the operation of the facilities.",
+      "stats": {
+        "Input Power": "1.5 MW",
+        "Output Power": "2.25 MW",
+        "Accumulated": "540.0 MJ",
+        "Made In": "Assembler",
+        "Hand-make": "Replicator",
+        "Grid Size": "3×3",
+        "Stack Size": "50"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Accumulator",
+      "imageName": "Icon Accumulator.png"
+    },
+    {
+      "name": "Full Accumulator",
+      "category": "Power Storage, Fuel",
+      "description": "The accumulator in the fully charged state. Wen the power is insufficient, can be constructed as a facility to automatically discharge, or it can be placed in an energy exchanger to release electrical energy.",
+      "stats": {
+        "Fuel Type": "Storage",
+        "Energy": "540 MJ",
+        "Fuel Chamber Gen.": "+100%",
+        "Input Power": "1.50 MW",
+        "Output Power": "2.25 MW",
+        "Made In": "Energy Exchanger",
+        "Grid Size": "3×3",
+        "Stack Size": "50"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Full_Accumulator",
+      "imageName": "Icon Full Accumulator.png"
+    },
+    {
+      "name": "Ray Receiver",
+      "category": "Power Facility",
+      "description": "Receiving high-energy rays transmitted from the Dyson Swarm or Dyson Sphere, the received energy can be directly output to the grid or stored as photons in a critical state.",
+      "stats": {
+        "Energy Type": "Ion Current",
+        "Power": "6.0 MW",
+        "Made In": "Assembler",
+        "Hand-Make": "Replicator",
+        "Stack Size": "20"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Ray_Receiver",
+      "imageName": "Icon Ray Receiver.png"
+    },
+    {
+      "name": "Artificial Star",
+      "category": "Power Facility",
+      "description": "\"All you have to do is let the positive and negative proton beams cross the magnetic field from both ends into the constraint sphere, nice'n easy!\" This scaled-down version of the system is known as the \"mini-sun\".",
+      "stats": {
+        "Energy Type": "Ion Current",
+        "Power": "72.0 MW",
+        "Energy Efficiency": "1",
+        "Made In": "Assembler",
+        "Hand-Make": "Replicator",
+        "Stack Size": "20"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Artificial_Star",
+      "imageName": "Icon Artificial Star.png"
+    },
+    {
+      "name": "Conveyor Belt Mk.I",
+      "category": "Logistics",
+      "description": "We need automation! Conveyor belts are the most basic part of production automation. They can transport cargo from one place to another.",
+      "stats": {
+        "Transport Speed": "6/s",
+        "Made In": "Assembler",
+        "Hand-Make": "Replicator",
+        "Grid Size": "1×1",
+        "Stack Size": "300"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Conveyor_Belt_Mk.I",
+      "imageName": "Icon Conveyor Belt Mk.I.png"
+    },
+    {
+      "name": "Conveyor Belt Mk.II",
+      "category": "Logistics",
+      "description": "Having a greater throughput of the conveyor belt and transport the cargo faster.",
+      "stats": {
+        "Transport Speed": "12/s",
+        "Made In": "Assembler",
+        "Hand-Make": "Replicator",
+        "Grid Size": "1×1",
+        "Stack Size": "300"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Conveyor_Belt_Mk.II",
+      "imageName": "Icon Conveyor Belt Mk.II.png"
+    },
+    {
+      "name": "Conveyor Belt Mk.III",
+      "category": "Logistics",
+      "description": "Maximize the speed and throughput of transporting cargo. Can design a more efficient production line with a reasonable combination of conveyor belts with different transport speed.",
+      "stats": {
+        "Transport Speed": "30/s",
+        "Made In": "Assembler",
+        "Hand-Make": "Replicator",
+        "Grid Size": "1×1",
+        "Stack Size": "300"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Conveyor_Belt_Mk.III",
+      "imageName": "Icon Conveyor Belt Mk.III.png"
+    },
+    {
+      "name": "Splitter",
+      "category": "Logistics",
+      "description": "Used to distribute cargo to different conveyor belts, or balance multiple conveyor belts, can set the filter and priority of input and output.",
+      "stats": {
+        "Number of Ports": "4",
+        "Made In": "Assembler",
+        "Hand-Make": "Replicator",
+        "Stack Size": "50"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Splitter",
+      "imageName": "Icon Splitter.png"
+    },
+    {
+      "name": "Automatic Piler",
+      "category": "Logistics",
+      "description": "After setting up the Automatic Piler on the conveyor belt, it can automatically integrate two consecutive cargos into one, which greatly improves the carrying capacity of the conveyor belt.",
+      "stats": {
+        "Work Consumption": "144 kW",
+        "Idle Consumption": "9000 W",
+        "Made In": "Assembler",
+        "Hand-make": "Replicator",
+        "Stack Size": "50"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Automatic_Piler",
+      "imageName": "Icon Automatic Piler.png"
+    },
+    {
+      "name": "Traffic Monitor",
+      "category": "Logistics",
+      "description": "The Traffic Monitor is built on the conveyor belt to monitor the real-time cargo flow rate at the corresponding location. Conditions can be set to trigger an alarm.",
+      "stats": {
+        "Durability": "100 hp",
+        "Work Consumption": "36.0 kW",
+        "Idle Consumption": "9000 W",
+        "Made In": "Assembler",
+        "Hand-make": "Replicator",
+        "Grid Size": "1×1",
+        "Stack Size": "100"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Traffic_Monitor",
+      "imageName": "Icon Traffic Monitor.png"
+    },
+    {
+      "name": "Spray Coater",
+      "category": "Production Facility",
+      "description": "After setting up the Spray Coater on the conveyor belt and inputting the Proliferator into the sprayer from the upper port, the cargos carried on the conveyor belt can be sprayed with the Proliferator. When the cargos are used as raw materials for the next level of production, it can obtain the effect of Extra Products or Production Speedup.",
+      "stats": {
+        "Work Consumption": "90.0 kW",
+        "Idle Consumption": "4500 W",
+        "Made In": "Assembler",
+        "Hand-make": "Replicator",
+        "Stack Size": "50"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Spray_Coater",
+      "imageName": "Icon Spray Coater.png"
+    },
+    {
+      "name": "Depot Mk.I",
+      "category": "Logistics",
+      "description": "Used to store products, but the capacity is limited.",
+      "stats": {
+        "Storage Size": "30 slots",
+        "Made In": "Assembler",
+        "Hand-Make": "Replicator",
+        "Stack Size": "50"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Storage_Mk.I",
+      "imageName": "Icon Storage Mk.I.png"
+    },
+    {
+      "name": "Depot Mk.II",
+      "category": "Logistics",
+      "description": "It is twice the capacity of a Depot Mk.I, but it needs to consume steel to produce.",
+      "stats": {
+        "Storage Size": "60 slots",
+        "Made In": "Assembler",
+        "Hand-Make": "Replicator",
+        "Stack Size": "50"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Storage_Mk.II",
+      "imageName": "Icon Storage Mk.II.png"
+    },
+    {
+      "name": "Storage Tank",
+      "category": "Logistics",
+      "description": "The Storage Tank has a larger capacity than the Storage for storing fluid. Any remaining fluid left in a tank will be lost when dismantled.",
+      "stats": {
+        "Fluid Capacity": "10000",
+        "Made In": "Assembler",
+        "Hand-Make": "Replicator",
+        "Stack Size": "50"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Storage_Tank",
+      "imageName": "Icon Storage Tank.png"
+    },
+    {
+      "name": "Logistics Distributor",
+      "category": "Logistics",
+      "description": "Thie Logistics Distributor can be built on top of the storage, and Logistics Bots will automatically transport the storage's contents to Icarus' Inventory or other Logistics Distributor base on demand. Being able to satisfy Icarus' needs for specific items and greatly increased efficiency in short range",
+      "stats": {
+        "Max Charging Power": "9.00 MW",
+        "Idle Consumption": "18.0 kW",
+        "Accumulated": "27.0 MJ",
+        "Distribution Range": "40-180 degrees",
+        "Made In": "Assembler",
+        "Hand-Make": "Replicator",
+        "Stack Size": "50"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Logistics_Distributor",
+      "imageName": "Icon Logistics Distributor.png"
+    },
+    {
+      "name": "Planetary Logistics Station",
+      "category": "Logistics",
+      "description": "The hub of the planetary logistics system, the logistics drones will automatically transport the cargo to the logistics station when you set the corresponding supply and demand.",
+      "stats": {
+        "Storage": "4 types",
+        "Max Charging Power": "60.0 MW",
+        "Idle Consumption": "60 kW",
+        "Accumulated": "180 MJ",
+        "Made In": "Assembler",
+        "Hand-Make": "Replicator",
+        "Stack Size": "10"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Planetary_Logistics_Station",
+      "imageName": "Icon Planetary Logistics Station.png"
+    },
+    {
+      "name": "Interstellar Logistics Station",
+      "category": "Logistics",
+      "description": "The magnificent space elevator realizes more convenient transportation of materials between planets. It can connect factories on different planets to form a gigantic industrial empire.",
+      "stats": {
+        "Storage": "5 types",
+        "Max Charging Power": "300 MW",
+        "Idle Consumption": "60 kW",
+        "Accumulated": "12.0 GJ",
+        "Made In": "Assembler",
+        "Hand-Make": "Replicator",
+        "Stack Size": "10"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Interstellar_Logistics_Station",
+      "imageName": "Icon Interstellar Logistics Station.png"
+    },
+    {
+      "name": "Orbital Collector",
+      "category": "Logistics",
+      "description": "Used to collect the resources of Gas giant, it needs to consume the collected fuel materials to maintain the energy required to work in orbit.",
+      "stats": {
+        "Gathering Target": "Gas Giant",
+        "Work Consumption": "30.0 MW",
+        "Gathering Speed": "8 * Mining speed * GG base - Cons.",
+        "Made In": "Assembler",
+        "Hand-Make": "Replicator",
+        "Stack Size": "10"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Orbital_Collector",
+      "imageName": "Icon Orbital Collector.png"
+    },
+    {
+      "name": "Sorter Mk.I",
+      "category": "Logistics",
+      "description": "Transport cargo from conveyor belts into facilities or between facilities, can install filter to filter the cargo.",
+      "stats": {
+        "Sorting Speed": "1.5 trip/s/grid",
+        "Cargo Stacking": "1",
+        "Work Consumption": "18.0 kW",
+        "Idle Consumption": "9000 W",
+        "Made In": "Assembler",
+        "Hand-Make": "Replicator",
+        "Grid Size": "1×1 - 1×3",
+        "Stack Size": "200"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Sorter_Mk.I",
+      "imageName": "Icon Sorter Mk.I.png"
+    },
+    {
+      "name": "Sorter Mk.II",
+      "category": "Logistics",
+      "description": "Can sort cargo more quickly.",
+      "stats": {
+        "Sorting Speed": "3.0 trip/s/grid",
+        "Cargo Stacking": "1",
+        "Work Consumption": "36.0 kW",
+        "Idle Consumption": "9000 W",
+        "Made In": "Assembler",
+        "Hand-Make": "Replicator",
+        "Grid Size": "1×1 - 1×3",
+        "Stack Size": "200"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Sorter_Mk.II",
+      "imageName": "Icon Sorter Mk.II.png"
+    },
+    {
+      "name": "Sorter Mk.III",
+      "category": "Logistics",
+      "description": "Maximize the speed of sorting cargo and can increase the number of sorter Mk.III sort the cargo by upgrading the technology.",
+      "stats": {
+        "Sorting Speed": "6.0 trip/s/grid",
+        "Cargo Stacking": "1 (base) - 6 (max upg)",
+        "Work Consumption": "72.0 kW",
+        "Idle Consumption": "9000 W",
+        "Made In": "Assembler",
+        "Hand-Make": "Replicator",
+        "Grid Size": "1×1 - 1×3",
+        "Stack Size": "200"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Sorter_Mk.III",
+      "imageName": "Icon Sorter Mk.III.png"
+    },
+    {
+      "name": "Pile Sorter",
+      "category": "Logistics",
+      "description": "After upgrading it, the Pile Sorter can integrate multiple cargos into one and feed out it. Even it is slightly expensive but it is a good deal for those engineers who are dedicated to run the Conveyor Belt at full speed.",
+      "stats": {
+        "Durability": "80 hp",
+        "Single-trip Time": "0.05s/grid",
+        "DeliverySpeed": "120 items/s",
+        "Load Stack": "2-4 (Upgradeable)",
+        "Unload Stack": "1-4 (Upgradeable)",
+        "Work Consumption": "144 kW",
+        "Idle Consumption": "9000 W",
+        "Made in": "Assembler",
+        "Hand-make": "Replicator",
+        "Stack Size": "200"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Pile_Sorter",
+      "imageName": "Icon Pile Sorter.png"
+    },
+    {
+      "name": "Mining Machine",
+      "category": "Mining Facility",
+      "description": "The more veins covered by the mining machine, the faster the mining speed, and the same vein can be covered by multiple mining rings, but the more mining rings covered, the faster the consumption.",
+      "stats": {
+        "Gathering Target": "Vein",
+        "Gathering Speed": "30 * veins * Mining speed/min",
+        "Work Consumption": "420 kW",
+        "Idle Consumption": "24.0 kW",
+        "Made In": "Assembler",
+        "Hand-Make": "Replicator",
+        "Stack Size": "50"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Mining_Machine",
+      "imageName": "Icon Mining Machine.png"
+    },
+    {
+      "name": "Advanced Mining Machine",
+      "category": "Mining Facility",
+      "description": "Using the quantum chip to positively intervene the photon group generated by the exciter in the transition process, it can lead a obvious bunching effect of the laser beam. Under the action of the special gravitational field, the focused laser beam rapidly heats the ore veins along the predetermined path, transports in the form of particles and encapsulated into cargos, it can be built more convenient and have a higher gathering speed. The collected ores can be transported out by conveyor belts or logistics drones.",
+      "stats": {
+        "Gathering Target": "Vein",
+        "Gathering Speed": "60 * veins *Mining speed/min",
+        "Work Consumption": "2.94 MW",
+        "Idle Consumption": "168 kW",
+        "Made In": "Assembler",
+        "Hand-make": "Replicator",
+        "Stack Size": "30"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Advanced_Mining_Machine",
+      "imageName": "Icon Advanced Mining Machine.png"
+    },
+    {
+      "name": "Water Pump",
+      "category": "Water Pumping Facility",
+      "description": "Facility used to directly extract liquid resources can collect sulfuric acid from the sulfuric acid ocean.",
+      "stats": {
+        "Gathering Target": "Liquid Source",
+        "Gathering Speed": "50 * Mining speed/min",
+        "Work Consumption": "300 kW",
+        "Idle Consumption": "12.0 kW",
+        "Made In": "Assembler",
+        "Hand-Make": "Replicator",
+        "Stack Size": "30"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Water_Pump",
+      "imageName": "Icon Water Pump.png"
+    },
+    {
+      "name": "Oil Extractor",
+      "category": "Oil Extraction Facility",
+      "description": "When plasma is used to extract oil from the Crude oil seep, the extraction speed will be different for different Crude oil seep.",
+      "stats": {
+        "Gathering Target": "Oil Field",
+        "Gathering Speed": "Oil Field speed (min. 6/min) * Mining speed",
+        "Work Consumption": "840 kW",
+        "Idle Consumption": "24.0 kW",
+        "Made In": "Assembler",
+        "Hand-Make": "Replicator",
+        "Stack Size": "20"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Oil_Extractor",
+      "imageName": "Icon Oil Extractor.png"
+    },
+    {
+      "name": "Oil Refinery",
+      "category": "Refining Facility",
+      "description": "The extracted crude oil is further refined to obtain refined oil and hydrogen.",
+      "stats": {
+        "Production Speed": "1x",
+        "Work Consumption": "960 kW",
+        "Idle Consumption": "24.0 kW",
+        "Made In": "Assembler",
+        "Hand-Make": "Replicator",
+        "Stack Size": "30"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Oil_Refinery",
+      "imageName": "Icon Oil Refinery.png"
+    },
+    {
+      "name": "Fractionator",
+      "category": "Fractionation Facility",
+      "description": "Taking advantage of the high vapor pressure ratio of hydrogen and liquid deuterium at a certain temperature, deuterium is fractionated from liquid hydrogen with a certain separation efficiency. Use a conveyor belt to introduce hydrogen from one side, after fractional distillation, export from the other side, and export the deuterium from the front port.",
+      "stats": {
+        "Work Consumption": "720 kW",
+        "Idle Consumption": "18.0 kW",
+        "Made In": "Assembler",
+        "Hand-Make": "Replicator",
+        "Stack Size": "30"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Fractionator",
+      "imageName": "Icon Fractionator.png"
+    },
+    {
+      "name": "Chemical Plant",
+      "category": "Chemical Facility",
+      "description": "Chemical facility. Can process the primary products of Crude oil into more advanced chemical products.",
+      "stats": {
+        "Production Speed": "1x",
+        "Work Consumption": "720 kW",
+        "Idle Consumption": "24.0 kW",
+        "Made In": "Assembler",
+        "Hand-Make": "Replicator",
+        "Stack Size": "30"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Chemical_Plant",
+      "imageName": "Icon Chemical Plant.png"
+    },
+    {
+      "name": "Quantum Chemical Plant",
+      "category": "Chemical Facility",
+      "description": "By using quantum entanglement formed by strange matter at specific points, the most complex part of chaos phenomenon in chemical reactions could be decoupled to some extent.  It could lead the reaction to proceed in a predetermined direction.  If these magical points could be evolved, they could catalyze the corresponding chemical reaction",
+      "stats": {
+        "Production Speed": "2x",
+        "Work Consumption": "2.16 MW",
+        "Idle Consumption": "36.0 kW",
+        "Made In": "Assembler",
+        "Hand-Make": "Replicator",
+        "Stack Size": "30"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Quantum_Chemical_Plant",
+      "imageName": "Icon Quantum Chemical Plant.png"
+    },
+    {
+      "name": "Miniature Particle Collider",
+      "category": "Particle Collider",
+      "description": "When the two beams of particles are continuously accelerated to a certain intensity and energy, they will collide, and new particles can be obtained. It is usually used to stably produce deuterium and antimatter, but will consume a lot of energy.",
+      "stats": {
+        "Production Speed": "1x",
+        "Work Consumption": "12.0 MW",
+        "Idle Consumption": "120 kW",
+        "Made In": "Assembler",
+        "Hand-Make": "Replicator",
+        "Stack Size": "20"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Miniature_Particle_Collider",
+      "imageName": "Icon Miniature Particle Collider.png"
+    },
+    {
+      "name": "Arc Smelter",
+      "category": "Smelting Facility",
+      "description": "Uses the high temperature generated by an electrode arc to smelt ores and metals. Can also be used for purification and crystal smelting.",
+      "stats": {
+        "Production Speed": "1x",
+        "Work Consumption": "360 kW",
+        "Idle Consumption": "12.0 kW",
+        "Made In": "Assembler",
+        "Hand-Make": "Replicator",
+        "Grid Size": "3×3",
+        "Stack Size": "50"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Arc_Smelter",
+      "imageName": "Icon Arc Smelter.png"
+    },
+    {
+      "name": "Plane Smelter",
+      "category": "Smelting Facility",
+      "description": "When monopoles pass through the Plane Filter, they produce a quantum effect of self-organizing and can generate a thermodynamic negative temperature flow. Using this technology, the process of ores smelting or purification can be greatly accelerated.",
+      "stats": {
+        "Production Speed": "2x",
+        "Work Consumption": "1.44 MW",
+        "Idle Consumption": "48.0 kW",
+        "Made In": "Assembler",
+        "Hand-make": "Replicator",
+        "Grid Size": "3×3",
+        "Stack Size": "50"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Plane_Smelter",
+      "imageName": "Icon Plane Smelter.png"
+    },
+    {
+      "name": "Negentropy Smelter",
+      "category": "Smelting Facility",
+      "description": "After energy has been put in continuously, the stimulated negentropy singularity in the Smelter can steadily give off negentropy. Despite the fact that little negentropy is obtained, after being repeated and repeated the process can efficiently restore ores to their elemental states from impure ores.",
+      "stats": {
+        "Durability": "240",
+        "Production Speed": "3x",
+        "Work Consumption": "2.88 MW",
+        "Idle Consumption": "96.0 kW",
+        "Made In": "Assembler",
+        "Hand-make": "Replicator",
+        "Grid Size": "3×3",
+        "Stack Size": "50"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Negentropy_Smelter",
+      "imageName": "Icon Negentropy Smelter.png"
+    },
+    {
+      "name": "Assembling Machine Mk.I",
+      "category": "Assembler",
+      "description": "The basic assembler. Can process iron and copper ingot into more advanced products, but the speed will be slightly slower.",
+      "stats": {
+        "Production Speed": "0.75x",
+        "Work Consumption": "270 kW",
+        "Idle Consumption": "12.0 kW",
+        "Made In": "Assembler",
+        "Hand-Make": "Replicator",
+        "Grid Size": "4×4",
+        "Stack Size": "50"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Assembling_Machine_Mk.I",
+      "imageName": "Icon Assembling Machine Mk.I.png"
+    },
+    {
+      "name": "Assembling Machine Mk.II",
+      "category": "Assembler",
+      "description": "The production speed has been greatly improved, and items can be processed more quickly.",
+      "stats": {
+        "Production Speed": "1x",
+        "Work Consumption": "540 kW",
+        "Idle Consumption": "15.0 kW",
+        "Made In": "Assembler",
+        "Hand-Make": "Replicator",
+        "Grid Size": "4×4",
+        "Stack Size": "50"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Assembling_Machine_Mk.II",
+      "imageName": "Icon Assembling Machine Mk.II.png"
+    },
+    {
+      "name": "Assembling Machine Mk.III",
+      "category": "Assembler",
+      "description": "The production speed is maximized, and a reasonable combination of conveyor belts and sorters of different speeds can effectively avoid the empty assembler or product blockage.",
+      "stats": {
+        "Production Speed": "1.5x",
+        "Work Consumption": "1.08 MW",
+        "Idle Consumption": "18.0 kW",
+        "Made In": "Assembler",
+        "Hand-Make": "Replicator",
+        "Grid Size": "4×4",
+        "Stack Size": "50"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Assembling_Machine_Mk.III",
+      "imageName": "Icon Assembling Machine Mk.III.png"
+    },
+    {
+      "name": "Re-composing Assembler",
+      "category": "Assembler",
+      "description": "The AI module can analyze the recipe of an item in real time and decompose raw materials into particles by precisely controlling the structure and compound mode of molecules. After tat, it then re-composes particles to form required items and performs Quantum Printing, greatly improving manufacturing speed",
+      "stats": {
+        "Durability": "300",
+        "Production Speed": "3x",
+        "Work Consumption": "2.70 MW",
+        "Idle Consumption": "54.0 kW",
+        "Made In": "Assembler",
+        "Hand-Make": "Replicator",
+        "Grid Size": "4×4",
+        "Stack Size": "50"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Re-composing_Assembler",
+      "imageName": "Icon Re-composing Assembler.png"
+    },
+    {
+      "name": "Matrix Lab",
+      "category": "Research Facility",
+      "description": "CentreBrain's connector. Used to produce matrices and research technologies. The more the matrix labs, the faster the production and research speed.",
+      "stats": {
+        "Production Speed": "1x",
+        "Research Speed": "60 Hash/s",
+        "Work Consumption": "480 kW",
+        "Idle Consumption": "12.0 kW",
+        "Made In": "Assembler",
+        "Hand-Make": "Replicator",
+        "Stack Size": "50"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Matrix_Lab",
+      "imageName": "Icon Matrix Lab.png"
+    },
+    {
+      "name": "Self-evolution Lab",
+      "category": "Research Facility",
+      "description": "A Self-evolution lab allows silicon-based neurons to autonomously adjust and improve neural networking while constantly learning and adaption, similar to synaptic plasticity of biological neurons.  Over time, silicon-based neurons can keep optimization their own structures and function through self-evolution to solve problems more effectively.",
+      "stats": {
+        "Durability": "340",
+        "Production Speed": "3x",
+        "Research Speed": "480 Hash/s",
+        "Work Consumption": "1.92 MW",
+        "Idle Consumption": "48.0 kW",
+        "Made In": "Assembler",
+        "Hand-Make": "Replicator",
+        "Stack Size": "50"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Self-evolution_Lab",
+      "imageName": "Icon Self-evolution Lab.png"
+    },
+    {
+      "name": "Holo Beacon",
+      "category": "Decoration",
+      "description": "Engineers can remotely operate the holo beacons, setting markers or editing comments to better manage and plan the entire facility. These holo beacons project precise and highly visible three-dimensional light pillars. These pillars can serve as reliable landmarks over a wide area, helping engineers quickly locate specific points.",
+      "stats": {
+        "Durability": "160 hp",
+        "Work Consumption": "120 kW",
+        "Made in": "Assembler",
+        "Hand-make": "Replicator",
+        "Stack Size": "50"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Holo_Beacon",
+      "imageName": "Icon Holo Beacon.png"
+    },
+    {
+      "name": "EM-Rail Ejector",
+      "category": "Production Facility",
+      "description": "Launch a large amount of solar sails into the orbit of a star to form a Dyson Swarm.",
+      "stats": {
+        "Eject Speed": "20/min",
+        "Work Consumption": "1.80 MW",
+        "Idle Consumption": "60.0 kW",
+        "Made In": "Assembler",
+        "Hand-Make": "Replicator",
+        "Stack Size": "30"
+      },
+      "wikiUrl": "https://dsp-wiki.com/EM-Rail_Ejector",
+      "imageName": "Icon EM-Rail Ejector.png"
+    },
+    {
+      "name": "Vertical Launching Silo",
+      "category": "Production Facility",
+      "description": "Launch a small carrier rocket loaded with Dyson Sphere components onto the Dyson Sphere orbit to form nodes and frames.",
+      "stats": {
+        "Launch Speed": "5/min",
+        "Work Consumption": "18.0 MW",
+        "Idle Consumption": "60.0 kW",
+        "Made In": "Assembler",
+        "Hand-Make": "Replicator",
+        "Stack Size": "10"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Vertical_Launching_Silo",
+      "imageName": "Icon Vertical Launching Silo.png"
+    },
+    {
+      "name": "Gauss Turret",
+      "category": "Turret",
+      "description": "An EM field is used to accelerate bullet speed. 48mm bullets form dense and intense firepower. The damage inflicted to low-air units as a result should not be underestimated.",
+      "stats": {
+        "Durability": "420 hp",
+        "Turret Type": "Kinetic Weapon",
+        "Target Type": "VS Ground & Air",
+        "Range of Ground Defense": "44 m",
+        "Ammo Type": "Bullet",
+        "Fire Rate": "6 shots/s",
+        "Work Consumption": "210 kW",
+        "Idle Consumption": "9000 W",
+        "Made in": "Assembler",
+        "Hand-make": "Replicator",
+        "Stack Size": "50"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Gauss_Turret",
+      "imageName": "Icon Gauss Turret.png"
+    },
+    {
+      "name": "Missile Turret",
+      "category": "Turret",
+      "description": "Equipped with an advanced missile launcher and a target identification system, Turrets can quickly identify and locate both ground and space targets. Once they lock onto a target, they will then launch missiles. They are designed to respond to multiple threats with all-around defense.",
+      "stats": {
+        "Durability": "560 hp",
+        "Turret Type": "Explosive Weapon",
+        "Target Type": "VS Ground & Air and Space",
+        "Range of Ground Defense": "60 m",
+        "Range of Space Defense": "4200 m",
+        "Ammo Type": "Missile",
+        "Fire Rate": "2.5 shots/s",
+        "Work Consumption": "600 kW",
+        "Idle Consumption": "18.0 kW",
+        "Made in": "Assembler",
+        "Stack Size": "50"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Missile_Turret",
+      "imageName": "Icon Missile Turret.png"
+    },
+    {
+      "name": "Implosion Cannon",
+      "category": "Turret",
+      "description": "After hitting a target, a 280mm shell can cause a wide-ranging explosive blast and inflict Explosive Damage to units and facilities in the vicinity. Additionally, due to its design characteristics implosion Cannon can't be used to attack close targets.",
+      "stats": {
+        "Durability": "600 hp",
+        "Turret Type": "Kinetic and ExplosiveWeapons",
+        "Target Type": "VS Ground & Air",
+        "Range of Ground Defense": "12 - 58 m",
+        "Ammo Type": "Shell",
+        "Fire Rate": "1 shots/s",
+        "Work Consumption": "750 kW",
+        "Idle Consumption": "30.0 kW",
+        "Made in": "Assembler",
+        "Hand-make": "Replicator",
+        "Stack Size": "50"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Implosion_Cannon",
+      "imageName": "Icon Implosion Cannon.png"
+    },
+    {
+      "name": "Laser Turret",
+      "category": "Turret",
+      "description": "High-energy laser beams will be emitted to keep strafing enemy units when they enter the defensive range. High temperatures lead to sustained damage to targets. Laser Towers' high-frequency lasers can hit targets precisely and in a short period of time, but they consume a lot of energy.",
+      "stats": {
+        "Durability": "560 hp",
+        "Turret Type": "Energy Weapon",
+        "Target Type": "VS Ground & Air",
+        "Range of Ground Defense": "40 m",
+        "DPS": "120.0 hp",
+        "Work Consumption": "3.00 MW",
+        "Idle Consumption": "120 kW",
+        "Made in": "Assembler",
+        "Hand-make": "Replicator",
+        "Stack Size": "50"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Laser_Turret",
+      "imageName": "Icon Laser Turret.png"
+    },
+    {
+      "name": "Plasma Turret",
+      "category": "Turret",
+      "description": "After being stimulated, the matter inside an energy capsule will be in a high-energy plasma state. It will then be quickly emitted by the Plasma Turret's accelerator to generate high-speed plasma beams. Such beams are extremely penetrating and destructive, and can effectively destroy space targets.",
+      "stats": {
+        "Durability": "800 hp",
+        "Turret Type": "Energy Weapon",
+        "Target Type": "VS Space",
+        "Range of Space Defense": "6500 m",
+        "Ammo Type": "Energy Capsule",
+        "Fire Rate": "1 shots/s",
+        "Work Consumption": "1.68 MW",
+        "Idle Consumption": "84.0 kW",
+        "Made in": "Assembler",
+        "Hand-make": "Replicator",
+        "Stack Size": "50"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Plasma_Turret",
+      "imageName": "Icon Plasma Turret.png"
+    },
+    {
+      "name": "SR Plasma Turret",
+      "category": "Turret",
+      "description": "The powerful high-temperature plasma can melt enemies within its range, but maintaining such a device on the ground is not easy. To be able to attack nearby targets, constantly maintaining the excited plasma makes this facility very fragile and requires a large amount of power.",
+      "stats": {
+        "Durabilty": "380 hp",
+        "Turret Type": "Energy Weapon",
+        "Target Type": "vs Ground & Air",
+        "Range of Ground Defense": "8-55 m",
+        "Ammo Type": "Energy Capsule",
+        "Fire Rate": "0.6 shots/s",
+        "Work Consumption": "4.20 MW",
+        "Idle Consumption": "2.10 MW",
+        "Made In": "Assembler",
+        "Hand-make": "Replicator",
+        "Stack Size": "20"
+      },
+      "wikiUrl": "https://dsp-wiki.com/SR_Plasma_Turret",
+      "imageName": "Icon SR Plasma Turret.png"
+    },
+    {
+      "name": "Battlefield Analysis Base",
+      "category": "Defense Facility",
+      "description": "The core for battlefield controlling with powerful real-time battlefield analysis and command capabilities. Self-equipped Fighters can be dispatched for base defense. A destroyed building will automatically be marked with a hologram. Construction Drones will then be dispatched for building and repair to provide support on the battlefield. A Battlefield Analysis Base can also collect enemy debris for analysis and acquire useful intelligence and resources from battlefield residues.",
+      "stats": {
+        "Durability": "750",
+        "Work Consumption": "2.40 MW",
+        "Idle Consumption": "60.0 kW",
+        "Construction Coverage": "60 m",
+        "Pick Up Coverage": "90 m",
+        "Made in": "Assembler",
+        "Hand-Make": "Replicator",
+        "Stack Size": "20"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Battlefield_Analysis_Base",
+      "imageName": "Icon Battlefield Analysis Base.png"
+    },
+    {
+      "name": "Jammer Tower",
+      "category": "Turret",
+      "description": "It can interfere with nearby enemy units periodically, decreasing their movement speed and rate of fire. Each interference consumes EM capsule once.",
+      "stats": {
+        "Durability": "450 hp",
+        "Turret Type": "EM Weapon",
+        "Target Type": "VS Ground & Air",
+        "Range of Ground Defense": "40 m",
+        "Ammo Type": "EM Capsule",
+        "Fire Rate": "0.2 shots/s",
+        "Work Consumption": "1.20 MW",
+        "Idle Consumption": "90.0 kW",
+        "Made in": "Assembler",
+        "Hand-make": "Replicator",
+        "Stack Size": "50"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Jammer_Tower",
+      "imageName": "Icon Jammer Tower.png"
+    },
+    {
+      "name": "Signal Tower",
+      "category": "Defense Facility",
+      "description": "A tactical defensive facility that periodically sends out signals of a specific frequency to induce Dark Fog, change the direction of an attack and increase the unit assembling speed. Signal Towers can for a data chain with Missile Turrets for information sharing, thus expanding the attack range of Missile Turrets.",
+      "stats": {
+        "Durability": "3000 hp",
+        "Connection Length": "60 m",
+        "Coverage": "Power 14 m / Signal 64 m",
+        "Work Consumption": "9.60 MW",
+        "Idle Consumption": "1.35 MW",
+        "Made in": "Assembler",
+        "Stack Size": "20"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Signal_Tower",
+      "imageName": "Icon Signal Tower.png"
+    },
+    {
+      "name": "Planetary Shield Generator",
+      "category": "Defense Facility",
+      "description": "They can create Planetary Shields on planets to resist attacks from space. Massive amounts of energy are required for a Planetary Shield. If the shield becomes ineffective, it will leave the planet exposed to serious threads from space. Additionally, the number of Shield Generators that can be built on a planet is limited. Planetary Shield can only resist damage from space, it cannot defend ground damage.",
+      "stats": {
+        "Durability": "1500 hp",
+        "Work Consumption": "24.00 MW",
+        "Idle Consumption": "12.0 MW",
+        "Made in": "Assembler",
+        "Hand-make": "Replicator",
+        "Stack Size": "50"
+      },
+      "wikiUrl": "https://dsp-wiki.com/Planetary_Shield_Generator",
+      "imageName": "Icon Planetary Shield Generator.png"
+    }
+  ]
+}

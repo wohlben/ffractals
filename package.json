@@ -12,7 +12,12 @@
     "test": "vitest run",
     "format": "biome format",
     "lint": "biome lint",
-    "check": "biome check"
+    "check": "biome check",
+    "update:protosets": "curl -o src/assets/protosets.json 'https://dsp-wiki.com/Module:GameData/protosets.json?action=raw'",
+    "update:icons": "node scripts/update-icons.js",
+    "download:images": "node scripts/download-images.js",
+    "check:mappings": "node scripts/check-icon-mappings.js",
+    "update:building-details": "node scripts/scrape-building-details.mjs"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",
@@ -45,6 +50,7 @@
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^5.0.4",
+    "cheerio": "^1.2.0",
     "jsdom": "^27.0.0",
     "typescript": "^5.7.2",
     "vite": "^7.1.7",
