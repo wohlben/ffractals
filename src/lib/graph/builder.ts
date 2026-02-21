@@ -9,10 +9,71 @@ import type {
 import { TICKS_PER_SECOND } from "../calculator/models";
 import { DSPData } from "../data/dsp-data";
 
-const X_SPACING = 250;
+const MINING_NODE_WIDTH = 180;
+const NODE_BASE_WIDTH = 200;
+const X_GAP = 30;
 const Y_SPACING = 180;
 const ROOT_START_X = 100;
 const ROOT_START_Y = 100;
+const ROOT_GAP = 80;
+
+function getNodeWidth(
+	element: CalculationElement,
+	elements: Record<string, CalculationElement>,
+): number {
+	if (
+		element.source?.type === "mining" ||
+		element.source?.type === "extraction"
+	) {
+		return MINING_NODE_WIDTH;
+	}
+	if (element.source?.type === "recipe" && element.inputs.length > 0) {
+		return Math.max(NODE_BASE_WIDTH, element.inputs.length * 48 + 32);
+	}
+	return NODE_BASE_WIDTH;
+}
+
+function calculateSubtreeWidths(
+	elementId: string,
+	elements: Record<string, CalculationElement>,
+	widths: Map<string, number>,
+	visiting: Set<string>,
+): number {
+	if (widths.has(elementId)) return widths.get(elementId)!;
+
+	const element = elements[elementId];
+	if (!element) return NODE_BASE_WIDTH;
+
+	const nodeWidth = getNodeWidth(element, elements);
+
+	// Shared node (being visited by another branch) — count only its own width
+	if (visiting.has(elementId)) {
+		widths.set(elementId, nodeWidth);
+		return nodeWidth;
+	}
+	visiting.add(elementId);
+
+	const validChildren = element.inputs.filter((id) => elements[id]);
+	if (validChildren.length === 0) {
+		widths.set(elementId, nodeWidth);
+		return nodeWidth;
+	}
+
+	let totalChildrenWidth = 0;
+	for (let i = 0; i < validChildren.length; i++) {
+		if (i > 0) totalChildrenWidth += X_GAP;
+		totalChildrenWidth += calculateSubtreeWidths(
+			validChildren[i],
+			elements,
+			widths,
+			visiting,
+		);
+	}
+
+	const subtreeWidth = Math.max(nodeWidth, totalChildrenWidth);
+	widths.set(elementId, subtreeWidth);
+	return subtreeWidth;
+}
 
 export function buildGraphFromState(
 	targets: CalculationTarget[],
@@ -21,23 +82,37 @@ export function buildGraphFromState(
 	const nodes: Node[] = [];
 	const edges: Edge[] = [];
 	const visited = new Set<string>();
-	let rootIndex = 0;
 
+	// Pass 1: calculate subtree widths bottom-up
+	const subtreeWidths = new Map<string, number>();
+	for (const target of targets) {
+		if (elements[target.rootElementId]) {
+			calculateSubtreeWidths(
+				target.rootElementId,
+				elements,
+				subtreeWidths,
+				new Set<string>(),
+			);
+		}
+	}
+
+	// Pass 2: position nodes top-down
+	let rootOffset = ROOT_START_X;
 	for (const target of targets) {
 		const rootElement = elements[target.rootElementId];
 		if (!rootElement) continue;
 
-		const rootX = ROOT_START_X + rootIndex * (X_SPACING * 3);
-		processElement(rootElement, null, rootX, ROOT_START_Y, 0);
-		rootIndex++;
+		const width = subtreeWidths.get(target.rootElementId) ?? NODE_BASE_WIDTH;
+		const rootCenterX = rootOffset + width / 2;
+		processElement(rootElement, null, rootCenterX, ROOT_START_Y);
+		rootOffset += width + ROOT_GAP;
 	}
 
 	function processElement(
 		element: CalculationElement,
 		parentElement: CalculationElement | null,
-		x: number,
+		centerX: number,
 		y: number,
-		depth: number,
 	): void {
 		if (visited.has(element.id)) {
 			if (parentElement) {
@@ -51,10 +126,11 @@ export function buildGraphFromState(
 		if (element.source?.type === "mining") nodeType = "mining";
 		if (element.source?.type === "extraction") nodeType = "extraction";
 
+		const nodeWidth = getNodeWidth(element, elements);
 		const node: Node = {
 			id: element.id,
 			type: nodeType,
-			position: { x, y },
+			position: { x: centerX - nodeWidth / 2, y },
 			data: createNodeData(element, elements),
 		};
 		nodes.push(node);
@@ -63,18 +139,23 @@ export function buildGraphFromState(
 			edges.push(createEdge(parentElement, element));
 		}
 
-		const childCount = element.inputs.length;
-		const totalWidth = (childCount - 1) * X_SPACING;
-		const startX = x - totalWidth / 2;
+		const validChildren = element.inputs.filter((id) => elements[id]);
+		if (validChildren.length === 0) return;
 
-		for (let i = 0; i < childCount; i++) {
-			const childId = element.inputs[i];
-			const child = elements[childId];
-			if (child) {
-				const childX = startX + i * X_SPACING;
-				const childY = y + Y_SPACING;
-				processElement(child, element, childX, childY, depth + 1);
-			}
+		// Sum children subtree widths
+		const childWidths = validChildren.map(
+			(id) => subtreeWidths.get(id) ?? NODE_BASE_WIDTH,
+		);
+		const totalWidth =
+			childWidths.reduce((sum, w) => sum + w, 0) +
+			(validChildren.length - 1) * X_GAP;
+
+		let currentX = centerX - totalWidth / 2;
+		for (let i = 0; i < validChildren.length; i++) {
+			const child = elements[validChildren[i]];
+			const childCenterX = currentX + childWidths[i] / 2;
+			processElement(child, element, childCenterX, y + Y_SPACING);
+			currentX += childWidths[i] + X_GAP;
 		}
 	}
 
