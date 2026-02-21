@@ -13,6 +13,7 @@ export function RecipeSelector({ elementId, onClose }: RecipeSelectorProps) {
 		setElementRecipe,
 		setElementToMining,
 		setElementToExtraction,
+		clearElementSource,
 	} = useCalculator();
 	const element = elementId ? elements[elementId] : null;
 
@@ -174,6 +175,35 @@ export function RecipeSelector({ elementId, onClose }: RecipeSelectorProps) {
 							</div>
 						</button>
 					)}
+
+					<button
+						type="button"
+						onClick={() => {
+							clearElementSource(elementId!);
+							onClose();
+						}}
+						className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-colors ${
+							!element.source
+								? "border-purple-500 bg-purple-500/10"
+								: "border-gray-700 hover:border-gray-500"
+						}`}
+					>
+						<img
+							src="/assets/images/Icon_Interstellar_Logistics_Station.png"
+							alt="ILS"
+							width={40}
+							height={40}
+							className="object-contain"
+						/>
+						<div>
+							<div className="font-medium text-gray-100">
+								Otherwise procured
+							</div>
+							<div className="text-sm text-gray-400">
+								Import via logistics or other means
+							</div>
+						</div>
+					</button>
 				</div>
 			</div>
 		</div>

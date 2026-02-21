@@ -86,6 +86,8 @@ function createNodeData(
 	elements: Record<string, CalculationElement>,
 ) {
 	const item = DSPData.getItemById(element.itemId);
+	// Check if this item can be crafted (has recipes)
+	const canCraft = DSPData.getRecipesProducing(element.itemId).length > 0;
 	const baseData = {
 		elementId: element.id,
 		itemId: element.itemId,
@@ -99,6 +101,7 @@ function createNodeData(
 		inputHandles: buildInputHandles(element, elements),
 		cycleDuration: 0,
 		perCycleAmount: 0,
+		canCraft,
 	};
 
 	// Add cycle information based on source type

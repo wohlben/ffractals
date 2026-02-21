@@ -7,6 +7,7 @@ import {
 import {
 	addTarget,
 	calculatorStore,
+	clearElementSource,
 	getPerFacilityRate,
 	removeTarget,
 	selectElement,
@@ -31,6 +32,7 @@ export function useCalculator() {
 		nodePositions: state.nodePositions,
 
 		addTarget,
+		clearElementSource,
 		getPerFacilityRate,
 		removeTarget,
 		setElementRecipe,

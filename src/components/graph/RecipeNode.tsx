@@ -24,6 +24,7 @@ interface RecipeNodeData {
 	inputHandles: InputHandle[];
 	cycleDuration: number;
 	perCycleAmount: number;
+	canCraft: boolean;
 }
 
 const getIconPath = (name: string) =>
@@ -54,7 +55,6 @@ export function RecipeNode({ data, selected }: NodeProps<RecipeNodeData>) {
 			className={cn(
 				"relative rounded-lg border-2 bg-gray-800 shadow-lg cursor-pointer",
 				selected ? "border-blue-500" : "border-gray-600",
-				!data.hasSource && "border-amber-500",
 			)}
 			style={{ width: nodeWidth }}
 			onClick={() => selectElement(data.elementId)}
@@ -91,27 +91,40 @@ export function RecipeNode({ data, selected }: NodeProps<RecipeNodeData>) {
 					</div>
 				</div>
 
-				{facility && data.facilityCount > 0 && (
+				{(facility && data.facilityCount > 0) || !data.hasSource ? (
 					<div className="mt-2 flex items-center gap-1">
-						<img
-							src={getIconPath(facility.Name)}
-							alt={facility.Name}
-							width={18}
-							height={18}
-							className="object-contain"
-							onError={onImgError}
-						/>
-						<span className="text-xs text-gray-400">
-							×
-							{Number.isInteger(data.facilityCount)
-								? data.facilityCount
-								: data.facilityCount.toFixed(2)}
-						</span>
+						{facility && data.facilityCount > 0 ? (
+							<img
+								src={getIconPath(facility.Name)}
+								alt={facility.Name}
+								width={18}
+								height={18}
+								className="object-contain"
+								onError={onImgError}
+							/>
+						) : !data.hasSource ? (
+							<img
+								src={"/assets/images/Icon_Interstellar_Logistics_Station.png"}
+								alt="Interstellar Logistics Station"
+								width={18}
+								height={18}
+								className="object-contain"
+								onError={onImgError}
+							/>
+						) : null}
+						{data.facilityCount > 0 && (
+							<span className="text-xs text-gray-400">
+								×
+								{Number.isInteger(data.facilityCount)
+									? data.facilityCount
+									: data.facilityCount.toFixed(2)}
+							</span>
+						)}
 					</div>
-				)}
+				) : null}
 
-				{!data.hasSource && (
-					<div className="mt-1 text-xs text-amber-400">
+				{!data.hasSource && data.canCraft && (
+					<div className="mt-1 text-xs text-gray-400">
 						Click to select recipe
 					</div>
 				)}

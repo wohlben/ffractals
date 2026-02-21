@@ -295,6 +295,54 @@ export function setElementToExtractionSource(elementId: string): void {
 	});
 }
 
+export function clearElementSource(elementId: string): void {
+	calculatorStore.setState((state) => {
+		const element = state.elements[elementId];
+		if (!element) return state;
+
+		// Collect all child element IDs to remove
+		const childrenToRemove = new Set<string>();
+		collectChildIds(elementId, state.elements, childrenToRemove);
+
+		// Remove children and update the element
+		const newElements = { ...state.elements };
+		for (const id of childrenToRemove) {
+			delete newElements[id];
+		}
+
+		// Reset the element to have no source
+		newElements[elementId] = {
+			...element,
+			source: null,
+			facility: null,
+			inputs: [],
+			byproducts: [],
+			actualRate: 0,
+		};
+
+		return {
+			...state,
+			elements: newElements,
+		};
+	});
+}
+
+function collectChildIds(
+	elementId: string,
+	elements: Record<string, CalculationElement>,
+	ids: Set<string>,
+): void {
+	const element = elements[elementId];
+	if (!element) return;
+
+	for (const childId of element.inputs) {
+		if (!ids.has(childId)) {
+			ids.add(childId);
+			collectChildIds(childId, elements, ids);
+		}
+	}
+}
+
 export function setDefaultFacility(
 	recipeType: RecipeType,
 	facilityItemId: number | undefined,

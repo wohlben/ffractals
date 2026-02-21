@@ -3,6 +3,7 @@ import { CalculatorGraph } from "@/components/graph/CalculatorGraph";
 
 export const Route = createFileRoute("/calculator")({
 	component: CalculatorPage,
+	ssr: false,
 });
 
 function CalculatorPage() {
