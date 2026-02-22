@@ -10,7 +10,6 @@
 
 import { execSync } from "child_process";
 import { readFileSync } from "fs";
-import { glob } from "glob";
 import path from "path";
 
 // Review configuration

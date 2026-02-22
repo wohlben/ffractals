@@ -140,6 +140,7 @@ Whenever you notice the same interface patterns, you first abstract the element 
 * Types are mandatory
 * Logic is generally extracted into seperate classes or utility function for easier testing
 * all _logic_ has sufficient coverage for every expected code branch
+* ui components should always have vitest component tests
 
 
 
