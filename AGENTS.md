@@ -48,6 +48,60 @@ Core Mechanics of the calculation include things like
 * Reducing the amount of ingredients by utillizing Proliferators, and how many ingredients _these_ will consume to save on the final outputs
 
 
+# Pre-Commit Code Review Workflow
+
+**BEFORE committing any code, you MUST run the code review agent.**
+
+The code review agent will:
+1. Analyze your changes for bad practices
+2. Create beads issues for problems found
+3. Block commits until critical issues are resolved
+
+```bash
+# Run code review on all staged changes
+task subagent_type=code-reviewer prompt="Review all staged changes before commit"
+
+# Check for blocking issues
+bd list --status=open --label=pre-commit-blocker
+```
+
+**DO NOT commit if:**
+- Any P0 (critical) issues exist
+- Type safety violations are present
+- Tests are failing
+- Linting errors remain
+
+## Code Review Agent
+
+See `.opencode/skills/code-review.md` for detailed review criteria.
+
+The agent checks for:
+- Type safety (no `any`, proper generics)
+- Code quality (pure functions, error handling)
+- React best practices (proper hooks, memoization)
+- Testing coverage
+- Performance optimizations
+- Accessibility compliance
+
+## Blocking Issues
+
+These MUST be fixed before committing:
+1. `any` types or unsafe casts
+2. Logic errors causing runtime failures
+3. Security vulnerabilities
+4. Test failures
+5. Lint errors
+
+## Workflow
+
+```
+Make changes → Run code review → Issues found?
+    ↓
+Yes → Create beads tickets → Fix blockers → Re-review
+    ↓
+No issues → Run quality gates → Commit → Push
+```
+
 # Coding rules
 
 You're a very experience Frontend Engineer capable of discenerning when to extract logic into seperate reusable components.

@@ -1,0 +1,17 @@
+#!/bin/bash
+# Code Review Skill Wrapper
+# Usage: opencode code-review [--staged|--diff-only|--fix]
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || echo '.')"
+
+# Check if we're in the right directory
+if [ ! -f "$REPO_ROOT/package.json" ]; then
+    echo "Error: Must run from project root"
+    exit 1
+fi
+
+# Run the code reviewer node script
+node "$SCRIPT_DIR/agents/code-reviewer.js" "$@"
