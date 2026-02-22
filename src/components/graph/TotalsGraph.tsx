@@ -10,6 +10,7 @@ import { useCallback, useEffect, useMemo } from "react";
 import "@xyflow/react/dist/style.css";
 
 import { useCalculator } from "@/hooks/use-calculator";
+import type { TotalsNodePosition } from "@/lib/calculator/models";
 import { buildTotalsGraphFromState } from "@/lib/graph/totals-builder";
 import { FlowEdge } from "./FlowEdge";
 import { TotalsNode } from "./TotalsNode";
@@ -32,7 +33,9 @@ export function TotalsGraph() {
 		// Apply saved positions
 		for (const node of graph.nodes) {
 			const itemId = Number(node.id.replace("totals-", ""));
-			const saved = totalsNodePositions.find((np) => np.itemId === itemId);
+			const saved = totalsNodePositions.find(
+				(np: TotalsNodePosition) => np.itemId === itemId,
+			);
 			if (saved) {
 				node.position = { x: saved.x, y: saved.y };
 			}
@@ -50,7 +53,9 @@ export function TotalsGraph() {
 		// Apply saved positions
 		for (const node of graph.nodes) {
 			const itemId = Number(node.id.replace("totals-", ""));
-			const saved = totalsNodePositions.find((np) => np.itemId === itemId);
+			const saved = totalsNodePositions.find(
+				(np: TotalsNodePosition) => np.itemId === itemId,
+			);
 			if (saved) {
 				node.position = { x: saved.x, y: saved.y };
 			}
