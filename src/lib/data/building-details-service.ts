@@ -1,10 +1,12 @@
-import buildingDetailsData from "../../assets/building-details.json";
+import buildingDetailsData from "../../assets/building-details.json" with {
+	type: "json",
+};
 
 interface BuildingDetails {
 	name: string;
 	category: string;
 	description: string;
-	stats: Record<string, string>;
+	stats: Record<string, string | undefined>;
 	wikiUrl: string;
 	imageName: string;
 }
@@ -17,9 +19,10 @@ interface BuildingDetailsData {
 	buildings: BuildingDetails[];
 }
 
+// biome-ignore lint/complexity/noStaticOnlyClass: Data service class by design
 export class BuildingDetailsService {
 	private static data: BuildingDetailsData =
-		buildingDetailsData as unknown as BuildingDetailsData;
+		buildingDetailsData as BuildingDetailsData;
 
 	// Map of building names to item IDs (from ItemProtoSet)
 	private static buildingNameToItemId: Record<string, number> = {
@@ -72,7 +75,7 @@ export class BuildingDetailsService {
 
 		// Parse production speed from stats
 		const productionSpeed = building.stats["Production Speed"];
-		if (productionSpeed) {
+		if (productionSpeed !== undefined) {
 			const match = productionSpeed.match(/([\d.]+)x/);
 			if (match) {
 				return parseFloat(match[1]);

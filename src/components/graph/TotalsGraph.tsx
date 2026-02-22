@@ -2,7 +2,6 @@ import {
 	Background,
 	Controls,
 	MiniMap,
-	type Node,
 	ReactFlow,
 	useEdgesState,
 	useNodesState,
@@ -62,7 +61,7 @@ export function TotalsGraph() {
 	}, [targets, elements, totalsNodePositions, setNodes, setEdges]);
 
 	const onNodeDragStop = useCallback(
-		(_: unknown, node: Node) => {
+		(_: unknown, node: { id: string; position: { x: number; y: number } }) => {
 			const itemId = Number(node.id.replace("totals-", ""));
 			updateTotalsNodePosition(itemId, node.position.x, node.position.y);
 		},

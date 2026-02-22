@@ -1,11 +1,11 @@
-import type React from "react";
 import {
+	createRootRoute,
 	HeadContent,
 	Outlet,
 	Scripts,
-	createRootRoute,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+import type React from "react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { RecipeSelector } from "@/components/modals/RecipeSelector";
 import { useCalculator } from "@/hooks/use-calculator";

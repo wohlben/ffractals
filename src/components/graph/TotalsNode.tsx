@@ -1,4 +1,4 @@
-import { Handle, type NodeProps, Position } from "@xyflow/react";
+import { Handle, type Node, type NodeProps, Position } from "@xyflow/react";
 import { useState } from "react";
 import { FacilityEditPopover } from "@/components/graph/FacilityEditPopover";
 import { RateEditPopover } from "@/components/graph/RateEditPopover";
@@ -19,7 +19,7 @@ interface FacilityEntry {
 	name: string;
 }
 
-interface TotalsNodeData {
+interface TotalsNodeData extends Record<string, unknown> {
 	itemId: number;
 	itemName: string;
 	requiredRate: number;
@@ -33,7 +33,9 @@ interface TotalsNodeData {
 	recipeType: string | null;
 }
 
-export function TotalsNode({ data, selected }: NodeProps<TotalsNodeData>) {
+type TotalsNode = Node<TotalsNodeData, "totals">;
+
+export function TotalsNode({ data, selected }: NodeProps<TotalsNode>) {
 	const { updateTargetRate, updateRootFacility } = useCalculator();
 	const item = DSPData.getItemById(data.itemId);
 	const inputHandles = data.inputHandles ?? [];
@@ -75,6 +77,7 @@ export function TotalsNode({ data, selected }: NodeProps<TotalsNodeData>) {
 			style={{ width: nodeWidth }}
 		>
 			{/* Output handle — top center */}
+			{/* biome-ignore lint/correctness/useUniqueElementIds: React Flow handle identifier */}
 			<Handle
 				type="source"
 				position={Position.Top}
@@ -130,7 +133,7 @@ export function TotalsNode({ data, selected }: NodeProps<TotalsNodeData>) {
 									setPopover(popover === "facility" ? null : "facility");
 								}}
 							>
-								{data.facilities.map((fac) => {
+								{data.facilities.map((fac: FacilityEntry) => {
 									const facItem = DSPData.getItemById(fac.itemId);
 									return (
 										<div key={fac.itemId} className="flex items-center gap-1">
@@ -147,7 +150,7 @@ export function TotalsNode({ data, selected }: NodeProps<TotalsNodeData>) {
 							</button>
 						) : (
 							<div className="flex flex-wrap items-center gap-2">
-								{data.facilities.map((fac) => {
+								{data.facilities.map((fac: FacilityEntry) => {
 									const facItem = DSPData.getItemById(fac.itemId);
 									return (
 										<div key={fac.itemId} className="flex items-center gap-1">
@@ -193,7 +196,7 @@ export function TotalsNode({ data, selected }: NodeProps<TotalsNodeData>) {
 					className="relative border-t border-gray-700"
 					style={{ height: 40 }}
 				>
-					{inputHandles.map((handle, i) => {
+					{inputHandles.map((handle: InputHandle, i: number) => {
 						const leftPercent = ((i + 1) / (inputHandles.length + 1)) * 100;
 						return (
 							<div
@@ -217,7 +220,7 @@ export function TotalsNode({ data, selected }: NodeProps<TotalsNodeData>) {
 					})}
 
 					{/* Per-ingredient target handles on bottom edge */}
-					{inputHandles.map((handle, i) => {
+					{inputHandles.map((handle: InputHandle, i: number) => {
 						const leftPercent = ((i + 1) / (inputHandles.length + 1)) * 100;
 						return (
 							<Handle

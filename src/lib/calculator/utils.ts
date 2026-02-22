@@ -5,16 +5,11 @@ import type {
 	CalculationTarget,
 	ExtractionSource,
 	FacilityConfig,
-	FacilityData,
 	FacilitySummary,
 	GlobalDefaults,
 	MiningSource,
 	ModifierConfig,
-	ProliferatorMode,
 	RateBreakdown,
-	RecipeData,
-	RecipeInput,
-	RecipeOutput,
 	RecipeSource,
 	ResourceNeeds,
 } from "./models";
@@ -257,7 +252,7 @@ export function setElementFacility(
 	facilityItemId: number,
 	facilitySpeedMultiplier: number,
 	context: CalculationContext,
-	defaults: GlobalDefaults,
+	_defaults: GlobalDefaults,
 ): CalculationElement {
 	if (!element.source || element.source.type !== "recipe") {
 		return element;

@@ -1,52 +1,56 @@
-import protoSetsData from "../../assets/protosets.json";
-import type {
-	Item,
-	ProtoSets,
-	Recipe,
-	RecipeType,
-	Tech,
-	Theme,
-	Vein,
-} from "./models";
+import protoSetsData from "../../assets/protosets.json" with { type: "json" };
+import type { Item, ProtoSets, Recipe, Tech, Theme, Vein } from "./models";
 
+// biome-ignore lint/complexity/noStaticOnlyClass: Data service class by design
 export class DSPData {
 	// Raw data arrays
-	static items: Item[] = (protoSetsData as unknown as ProtoSets).ItemProtoSet
+	static items: Item[] = (protoSetsData as ProtoSets).ItemProtoSet.dataArray;
+	static recipes: Recipe[] = (protoSetsData as ProtoSets).RecipeProtoSet
 		.dataArray;
-	static recipes: Recipe[] = (protoSetsData as unknown as ProtoSets)
-		.RecipeProtoSet.dataArray;
-	static techs: Tech[] = (protoSetsData as unknown as ProtoSets).TechProtoSet
-		.dataArray;
-	static themes: Theme[] = (protoSetsData as unknown as ProtoSets).ThemeProtoSet
-		.dataArray;
-	static veins: Vein[] = (protoSetsData as unknown as ProtoSets).VeinProtoSet
-		.dataArray;
-	static version: string = (protoSetsData as unknown as ProtoSets).version;
+	static techs: Tech[] = (protoSetsData as ProtoSets).TechProtoSet.dataArray;
+	static themes: Theme[] = (protoSetsData as ProtoSets).ThemeProtoSet.dataArray;
+	static veins: Vein[] = (protoSetsData as ProtoSets).VeinProtoSet.dataArray;
+	static version: string = (protoSetsData as ProtoSets).version;
 
 	// Lookup maps for O(1) access
 	static itemsById: Record<number, Item> = this.items.reduce(
-		(acc, item) => ({ ...acc, [item.ID]: item }),
-		{} as Record<number, Item>,
+		(acc: Record<number, Item>, item) => {
+			acc[item.ID] = item;
+			return acc;
+		},
+		{},
 	);
 
 	static recipesById: Record<number, Recipe> = this.recipes.reduce(
-		(acc, recipe) => ({ ...acc, [recipe.ID]: recipe }),
-		{} as Record<number, Recipe>,
+		(acc: Record<number, Recipe>, recipe) => {
+			acc[recipe.ID] = recipe;
+			return acc;
+		},
+		{},
 	);
 
 	static techsById: Record<number, Tech> = this.techs.reduce(
-		(acc, tech) => ({ ...acc, [tech.ID]: tech }),
-		{} as Record<number, Tech>,
+		(acc: Record<number, Tech>, tech) => {
+			acc[tech.ID] = tech;
+			return acc;
+		},
+		{},
 	);
 
 	static themesById: Record<number, Theme> = this.themes.reduce(
-		(acc, theme) => ({ ...acc, [theme.ID]: theme }),
-		{} as Record<number, Theme>,
+		(acc: Record<number, Theme>, theme) => {
+			acc[theme.ID] = theme;
+			return acc;
+		},
+		{},
 	);
 
 	static veinsById: Record<number, Vein> = this.veins.reduce(
-		(acc, vein) => ({ ...acc, [vein.ID]: vein }),
-		{} as Record<number, Vein>,
+		(acc: Record<number, Vein>, vein) => {
+			acc[vein.ID] = vein;
+			return acc;
+		},
+		{},
 	);
 
 	// Derived Sets for fast filtering

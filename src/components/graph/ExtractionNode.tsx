@@ -1,4 +1,4 @@
-import { Handle, type NodeProps, Position } from "@xyflow/react";
+import { Handle, type Node, type NodeProps, Position } from "@xyflow/react";
 import { useState } from "react";
 import { RateEditPopover } from "@/components/graph/RateEditPopover";
 import { GameIcon } from "@/components/ui/GameIcon";
@@ -6,7 +6,7 @@ import { useCalculator } from "@/hooks/use-calculator";
 import { DSPData } from "@/lib/data/dsp-data";
 import { cn } from "@/lib/utils";
 
-interface ExtractionNodeData {
+interface ExtractionNodeData extends Record<string, unknown> {
 	elementId: string;
 	itemId: number;
 	itemName: string;
@@ -19,10 +19,9 @@ interface ExtractionNodeData {
 	targetId: string | null;
 }
 
-export function ExtractionNode({
-	data,
-	selected,
-}: NodeProps<ExtractionNodeData>) {
+type ExtractionNode = Node<ExtractionNodeData, "extraction">;
+
+export function ExtractionNode({ data, selected }: NodeProps<ExtractionNode>) {
 	const { updateTargetRate } = useCalculator();
 	const item = DSPData.getItemById(data.itemId);
 	const [showRate, setShowRate] = useState(false);
@@ -35,6 +34,7 @@ export function ExtractionNode({
 			)}
 		>
 			{/* Output handle — top center */}
+			{/* biome-ignore lint/correctness/useUniqueElementIds: React Flow handle identifier */}
 			<Handle
 				type="source"
 				position={Position.Top}

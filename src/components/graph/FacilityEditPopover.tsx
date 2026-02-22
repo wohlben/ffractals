@@ -65,8 +65,10 @@ export function FacilityEditPopover({
 	if (facilities.length === 0) return null;
 
 	return (
+		// biome-ignore lint/a11y/noStaticElementInteractions: Required for React Flow event handling
 		<div
 			ref={containerRef}
+			role="presentation"
 			className="nopan nodrag nowheel absolute z-50 bg-gray-900 border border-gray-600 rounded-lg p-2 shadow-xl"
 			style={{ top: "100%", left: 0, minWidth: 200 }}
 			onClick={(e) => e.stopPropagation()}

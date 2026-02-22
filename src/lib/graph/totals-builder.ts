@@ -205,8 +205,10 @@ export function buildTotalsGraphFromState(
 	}
 	const queue: number[] = [...leafItemIds];
 	while (queue.length > 0) {
-		const currentItemId = queue.shift()!;
-		const currentDist = distFromLeaf.get(currentItemId)!;
+		const currentItemId = queue.shift();
+		if (currentItemId === undefined) continue;
+		const currentDist = distFromLeaf.get(currentItemId);
+		if (currentDist === undefined) continue;
 		const consumers = consumersOf.get(currentItemId);
 		if (!consumers) continue;
 		for (const consumerId of consumers) {
@@ -295,8 +297,12 @@ export function buildTotalsGraphFromState(
 					idealX.set(agg.itemId, Number.MAX_SAFE_INTEGER);
 				} else if (consumers.size === 1) {
 					// Single consumer — align with it
-					const consumerId = consumers.values().next().value!;
-					idealX.set(agg.itemId, positionX.get(consumerId) ?? START_X);
+					const consumerId = consumers.values().next().value;
+					if (consumerId === undefined) {
+						idealX.set(agg.itemId, START_X);
+					} else {
+						idealX.set(agg.itemId, positionX.get(consumerId) ?? START_X);
+					}
 				} else {
 					// Multiple consumers — align with deepest; if tied, average
 					let maxRow = -1;
@@ -329,7 +335,8 @@ export function buildTotalsGraphFromState(
 			for (const agg of group) {
 				const consumers = consumersOf.get(agg.itemId);
 				if (consumers && consumers.size === 1) {
-					const consumerId = consumers.values().next().value!;
+					const consumerId = consumers.values().next().value;
+					if (consumerId === undefined) continue;
 					const consumerSupplierCount = suppliersOf(consumerId).length;
 					if (consumerSupplierCount > 1) {
 						const siblings = consumerGroups.get(consumerId) ?? [];

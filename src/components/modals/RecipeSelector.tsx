@@ -17,8 +17,7 @@ export function RecipeSelector({ elementId, onClose }: RecipeSelectorProps) {
 		clearElementSource,
 	} = useCalculator();
 	const element = elementId ? elements[elementId] : null;
-
-	if (!element) return null;
+	if (!element || !elementId) return null;
 
 	const itemId = element.itemId;
 	const availableRecipes = DSPData.getRecipesProducing(itemId);
@@ -67,7 +66,7 @@ export function RecipeSelector({ elementId, onClose }: RecipeSelectorProps) {
 											<button
 												type="button"
 												onClick={() => {
-													setElementRecipe(elementId!, recipe.ID, false);
+													setElementRecipe(elementId, recipe.ID, false);
 													onClose();
 												}}
 												className="flex-1 flex items-center gap-3 p-3 text-left hover:bg-gray-800 transition-colors"
@@ -91,7 +90,7 @@ export function RecipeSelector({ elementId, onClose }: RecipeSelectorProps) {
 											<button
 												type="button"
 												onClick={() => {
-													setElementRecipe(elementId!, recipe.ID, true);
+													setElementRecipe(elementId, recipe.ID, true);
 													onClose();
 												}}
 												className="px-3 py-3 border-l border-gray-700 hover:bg-gray-800 transition-colors flex flex-col items-center justify-center min-w-[60px]"
@@ -111,7 +110,7 @@ export function RecipeSelector({ elementId, onClose }: RecipeSelectorProps) {
 						<button
 							type="button"
 							onClick={() => {
-								setElementToMining(elementId!);
+								setElementToMining(elementId);
 								onClose();
 							}}
 							className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-colors ${
@@ -136,7 +135,7 @@ export function RecipeSelector({ elementId, onClose }: RecipeSelectorProps) {
 						<button
 							type="button"
 							onClick={() => {
-								setElementToExtraction(elementId!);
+								setElementToExtraction(elementId);
 								onClose();
 							}}
 							className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-colors ${
@@ -162,7 +161,7 @@ export function RecipeSelector({ elementId, onClose }: RecipeSelectorProps) {
 					<button
 						type="button"
 						onClick={() => {
-							clearElementSource(elementId!);
+							clearElementSource(elementId);
 							onClose();
 						}}
 						className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-colors ${

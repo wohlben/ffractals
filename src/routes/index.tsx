@@ -46,6 +46,7 @@ function HomePage() {
 				) : (
 					<div className="space-y-4">
 						<button
+							type="button"
 							onClick={() => {
 								// Add a default target - Iron Ingot
 								addTarget(1101, 1);

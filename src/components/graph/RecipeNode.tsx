@@ -1,4 +1,4 @@
-import { Handle, type NodeProps, Position } from "@xyflow/react";
+import { Handle, type Node, type NodeProps, Position } from "@xyflow/react";
 import { useState } from "react";
 import { FacilityEditPopover } from "@/components/graph/FacilityEditPopover";
 import { RateEditPopover } from "@/components/graph/RateEditPopover";
@@ -14,7 +14,7 @@ interface InputHandle {
 	rate: number;
 }
 
-interface RecipeNodeData {
+interface RecipeNodeData extends Record<string, unknown> {
 	elementId: string;
 	itemId: number;
 	itemName: string;
@@ -33,7 +33,9 @@ interface RecipeNodeData {
 	recipeType: string | null;
 }
 
-export function RecipeNode({ data, selected }: NodeProps<RecipeNodeData>) {
+type RecipeNode = Node<RecipeNodeData, "recipe">;
+
+export function RecipeNode({ data, selected }: NodeProps<RecipeNode>) {
 	const {
 		selectElement,
 		updateTargetRate,
@@ -51,6 +53,7 @@ export function RecipeNode({ data, selected }: NodeProps<RecipeNodeData>) {
 	const nodeWidth = Math.max(200, inputHandles.length * 48 + 32);
 
 	return (
+		// biome-ignore lint/a11y/useSemanticElements: React Flow node - not a button semantically
 		<div
 			className={cn(
 				"relative rounded-lg border-2 bg-gray-800 shadow-lg cursor-pointer",
@@ -60,8 +63,14 @@ export function RecipeNode({ data, selected }: NodeProps<RecipeNodeData>) {
 			onClick={() => {
 				if (!popover) selectElement(data.elementId);
 			}}
+			onKeyDown={(e) => {
+				if (e.key === "Enter" && !popover) selectElement(data.elementId);
+			}}
+			role="button"
+			tabIndex={0}
 		>
 			{/* Output handle — top center */}
+			{/* biome-ignore lint/correctness/useUniqueElementIds: React Flow handle identifier */}
 			<Handle
 				type="source"
 				position={Position.Top}
@@ -183,7 +192,7 @@ export function RecipeNode({ data, selected }: NodeProps<RecipeNodeData>) {
 					className="relative border-t border-gray-700"
 					style={{ height: 40 }}
 				>
-					{inputHandles.map((handle, i) => {
+					{inputHandles.map((handle: InputHandle, i: number) => {
 						const leftPercent = ((i + 1) / (inputHandles.length + 1)) * 100;
 						return (
 							<div
@@ -207,7 +216,7 @@ export function RecipeNode({ data, selected }: NodeProps<RecipeNodeData>) {
 					})}
 
 					{/* Per-ingredient target handles on bottom edge */}
-					{inputHandles.map((handle, i) => {
+					{inputHandles.map((handle: InputHandle, i: number) => {
 						const leftPercent = ((i + 1) / (inputHandles.length + 1)) * 100;
 						return (
 							<Handle

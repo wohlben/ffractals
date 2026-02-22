@@ -40,7 +40,9 @@ export function FlowEdge({
 	targetY,
 	targetPosition,
 	data,
-}: EdgeProps<FlowEdgeData>) {
+}: EdgeProps) {
+	const typedData = data as FlowEdgeData | undefined;
+
 	const [edgePath, labelX, labelY] = getBezierPath({
 		sourceX,
 		sourceY,
@@ -50,9 +52,9 @@ export function FlowEdge({
 		targetPosition,
 	});
 
-	const rate = data?.rate ?? 0;
-	const itemId = data?.itemId ?? 0;
-	const itemsPerCycle = data?.itemsPerCycle ?? 0;
+	const rate = typedData?.rate ?? 0;
+	const itemId = typedData?.itemId ?? 0;
+	const itemsPerCycle = typedData?.itemsPerCycle ?? 0;
 	const item = itemId ? DSPData.getItemById(itemId) : null;
 	const belt = rate > 0 ? getBeltRequirement(rate) : null;
 
@@ -93,10 +95,10 @@ export function FlowEdge({
 								<GameIcon name={item.Name} size={16} />
 								<span className="text-gray-300">
 									{itemsPerCycle > 0
-									? Number.isInteger(itemsPerCycle)
-										? itemsPerCycle
-										: itemsPerCycle.toFixed(2)
-									: ""}
+										? Number.isInteger(itemsPerCycle)
+											? itemsPerCycle
+											: itemsPerCycle.toFixed(2)
+										: ""}
 								</span>
 							</>
 						)}

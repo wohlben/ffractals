@@ -1,9 +1,7 @@
 import {
 	Background,
 	Controls,
-	type Edge,
 	MiniMap,
-	type Node,
 	ReactFlow,
 	useEdgesState,
 	useNodesState,
@@ -29,8 +27,7 @@ const edgeTypes = {
 };
 
 export function CalculatorGraph() {
-	const { targets, elements, updateNodePosition, nodePositions } =
-		useCalculator();
+	const { targets, elements, updateNodePosition } = useCalculator();
 
 	const { nodes: initialNodes, edges: initialEdges } = useMemo(() => {
 		return buildGraphFromState(targets, elements);
@@ -49,7 +46,7 @@ export function CalculatorGraph() {
 	}, [targets, elements, setNodes, setEdges]);
 
 	const onNodeDragStop = useCallback(
-		(_: unknown, node: Node) => {
+		(_: unknown, node: { id: string; position: { x: number; y: number } }) => {
 			updateNodePosition(node.id, node.position.x, node.position.y);
 		},
 		[updateNodePosition],

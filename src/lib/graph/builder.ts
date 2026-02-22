@@ -19,7 +19,7 @@ const ROOT_GAP = 160;
 
 function getNodeWidth(
 	element: CalculationElement,
-	elements: Record<string, CalculationElement>,
+	_elements: Record<string, CalculationElement>,
 ): number {
 	if (
 		element.source?.type === "mining" ||
@@ -39,7 +39,8 @@ function calculateSubtreeWidths(
 	widths: Map<string, number>,
 	visiting: Set<string>,
 ): number {
-	if (widths.has(elementId)) return widths.get(elementId)!;
+	const cachedWidth = widths.get(elementId);
+	if (cachedWidth !== undefined) return cachedWidth;
 
 	const element = elements[elementId];
 	if (!element) return NODE_BASE_WIDTH;

@@ -1,4 +1,4 @@
-import { Handle, type NodeProps, Position } from "@xyflow/react";
+import { Handle, type Node, type NodeProps, Position } from "@xyflow/react";
 import { useState } from "react";
 import { RateEditPopover } from "@/components/graph/RateEditPopover";
 import { GameIcon } from "@/components/ui/GameIcon";
@@ -6,7 +6,7 @@ import { useCalculator } from "@/hooks/use-calculator";
 import { DSPData } from "@/lib/data/dsp-data";
 import { cn } from "@/lib/utils";
 
-interface MiningNodeData {
+interface MiningNodeData extends Record<string, unknown> {
 	elementId: string;
 	itemId: number;
 	itemName: string;
@@ -19,7 +19,9 @@ interface MiningNodeData {
 	targetId: string | null;
 }
 
-export function MiningNode({ data, selected }: NodeProps<MiningNodeData>) {
+type MiningNode = Node<MiningNodeData, "mining">;
+
+export function MiningNode({ data, selected }: NodeProps<MiningNode>) {
 	const { updateTargetRate } = useCalculator();
 	const item = DSPData.getItemById(data.itemId);
 	const [showRate, setShowRate] = useState(false);
@@ -32,6 +34,7 @@ export function MiningNode({ data, selected }: NodeProps<MiningNodeData>) {
 			)}
 		>
 			{/* Output handle — top center */}
+			{/* biome-ignore lint/correctness/useUniqueElementIds: React Flow handle identifier */}
 			<Handle
 				type="source"
 				position={Position.Top}
