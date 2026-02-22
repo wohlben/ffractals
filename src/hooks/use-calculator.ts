@@ -27,7 +27,7 @@ import {
 } from "@/lib/stores/calculator-store";
 
 export function useCalculator() {
-	const state = useStore(calculatorStore);
+	const state = useStore(calculatorStore, (s) => s);
 
 	return {
 		targets: state.targets,
@@ -60,16 +60,16 @@ export function useCalculator() {
 }
 
 export function useResourceNeeds() {
-	const state = useStore(calculatorStore);
+	const state = useStore(calculatorStore, (s) => s);
 	return calculateResourceNeeds(state.targets, state.elements);
 }
 
 export function useFacilitySummary() {
-	const state = useStore(calculatorStore);
+	const state = useStore(calculatorStore, (s) => s);
 	return calculateFacilitySummary(state.targets, state.elements);
 }
 
 export function useRateBreakdown() {
-	const state = useStore(calculatorStore);
+	const state = useStore(calculatorStore, (s) => s);
 	return calculateRateBreakdown(state.targets, state.elements);
 }

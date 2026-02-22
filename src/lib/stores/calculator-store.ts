@@ -68,7 +68,7 @@ const initialState: CalculatorState = {
 	viewState: { scale: 1, translateX: 0, translateY: 0 },
 };
 
-// Initialize with default state - hydration-safe
+// Initialize store
 export const calculatorStore = new Store<CalculatorState>(initialState);
 
 // Subscribe to save state changes
@@ -76,15 +76,13 @@ calculatorStore.subscribe(() => {
 	saveState(calculatorStore.state);
 });
 
-// Load saved state after hydration (client-side only)
-if (typeof window !== "undefined") {
-	const savedState = loadSavedState();
-	if (savedState) {
-		calculatorStore.setState((state) => ({
-			...state,
-			...savedState,
-		}));
-	}
+// Load saved state
+const savedState = loadSavedState();
+if (savedState) {
+	calculatorStore.setState((state) => ({
+		...state,
+		...savedState,
+	}));
 }
 
 export function addTarget(itemId: number, targetRate: number): string {
