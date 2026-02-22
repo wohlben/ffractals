@@ -266,7 +266,6 @@ export function buildTotalsGraphFromState(
 	// Chain continues while: item has exactly 1 consumer AND that consumer
 	// has exactly 1 supplier. These items always share the same X position.
 	const itemToGroup = new Map<number, number>();
-	const groupMembers = new Map<number, number[]>(); // groupId → [bottom, ..., top]
 	const groupVisited = new Set<number>();
 
 	for (const depth of [...sortedDepths].reverse()) {
@@ -294,7 +293,6 @@ export function buildTotalsGraphFromState(
 
 			if (chain.length >= 2) {
 				const groupId = chain[0]; // bottommost item as group ID
-				groupMembers.set(groupId, chain);
 				for (const id of chain) {
 					itemToGroup.set(id, groupId);
 				}
@@ -412,166 +410,171 @@ export function buildTotalsGraphFromState(
 		}
 	}
 
-	// Step 3: X coordinate assignment
+	// Step 3: X coordinate assignment — top-down from consumer positions
 	const positionX = new Map<number, number>();
 
-	// 3a: Bottom-up placement — center each item over its already-placed suppliers
-	for (let ri = sortedDepths.length - 1; ri >= 0; ri--) {
-		const depth = sortedDepths[ri];
-		const items = depthGroups.get(depth) ?? [];
-
-		for (const agg of items) {
-			// If group member with already-placed sibling, align to it
-			const gid = itemToGroup.get(agg.itemId);
-			if (gid !== undefined) {
-				const members = groupMembers.get(gid);
-				if (members) {
-					const placed = members.find(
-						(m) => m !== agg.itemId && positionX.has(m),
-					);
-					if (placed !== undefined) {
-						positionX.set(agg.itemId, positionX.get(placed) ?? START_X);
-						continue;
-					}
-				}
-			}
-
-			// Center over already-placed suppliers
-			const supps = suppliersOf.get(agg.itemId);
-			if (supps && supps.size > 0) {
-				const xs: number[] = [];
-				for (const sId of supps) {
-					const sx = positionX.get(sId);
-					if (sx !== undefined) xs.push(sx);
-				}
-				if (xs.length > 0) {
-					positionX.set(
-						agg.itemId,
-						xs.reduce((sum, x) => sum + x, 0) / xs.length,
-					);
-				}
-			}
-			// No placed suppliers yet — will be set by overlap resolution
-		}
-
-		// Overlap resolution: sweep left-to-right in barycenter slot order
-		let prevId: number | null = null;
-		for (const agg of items) {
+	// 3a: Place root row evenly spaced
+	{
+		const topDepth = sortedDepths[0];
+		const topItems = depthGroups.get(topDepth) ?? [];
+		let accX = START_X;
+		for (const agg of topItems) {
 			const w = nodeWidths.get(agg.itemId) ?? NODE_BASE_WIDTH;
-			let cx = positionX.get(agg.itemId) ?? START_X + w / 2;
-
-			if (prevId !== null) {
-				const prevW = nodeWidths.get(prevId) ?? NODE_BASE_WIDTH;
-				const prevCX = positionX.get(prevId) ?? START_X;
-				const minCX = prevCX + prevW / 2 + X_GAP + w / 2;
-				if (cx < minCX) cx = minCX;
-			}
-
-			positionX.set(agg.itemId, cx);
-			prevId = agg.itemId;
+			positionX.set(agg.itemId, accX + w / 2);
+			accX += w + X_GAP;
 		}
 	}
 
-	// 3b: Top-down refinement — pull each item toward centroid of all neighbors
+	// 3b: For each subsequent row, place items directly below their consumer(s).
+	// Single-consumer items ("anchored") get placement priority over multi-consumer
+	// items ("floating") so they end up directly below their single consumer.
 	for (let ri = 1; ri < sortedDepths.length; ri++) {
 		const depth = sortedDepths[ri];
 		const items = depthGroups.get(depth) ?? [];
 
-		const refinedX = new Map<number, number>();
+		// Compute desired X for each item: center below consumer(s)
+		const desiredX = new Map<number, number>();
 		for (const agg of items) {
-			const neighborXs: number[] = [];
 			const cons = consumersOf.get(agg.itemId);
-			if (cons) {
+			if (cons && cons.size > 0) {
+				const xs: number[] = [];
 				for (const cId of cons) {
 					const cx = positionX.get(cId);
-					if (cx !== undefined) neighborXs.push(cx);
+					if (cx !== undefined) xs.push(cx);
+				}
+				if (xs.length > 0) {
+					desiredX.set(
+						agg.itemId,
+						xs.reduce((sum, x) => sum + x, 0) / xs.length,
+					);
+					continue;
 				}
 			}
-			const supps = suppliersOf.get(agg.itemId);
-			if (supps) {
-				for (const sId of supps) {
-					const sx = positionX.get(sId);
-					if (sx !== undefined) neighborXs.push(sx);
-				}
-			}
-			if (neighborXs.length > 0) {
-				refinedX.set(
-					agg.itemId,
-					neighborXs.reduce((sum, x) => sum + x, 0) / neighborXs.length,
-				);
+			desiredX.set(agg.itemId, START_X);
+		}
+
+		// Separate into anchored (1 consumer, must be directly below) and floating
+		const anchoredItems: AggregatedItem[] = [];
+		const floatingItems: AggregatedItem[] = [];
+		for (const agg of items) {
+			const cons = consumersOf.get(agg.itemId);
+			if (cons && cons.size === 1) {
+				anchoredItems.push(agg);
 			} else {
-				refinedX.set(agg.itemId, positionX.get(agg.itemId) ?? START_X);
+				floatingItems.push(agg);
 			}
 		}
 
-		// Overlap resolution maintaining slot order
-		let prevId: number | null = null;
-		for (const agg of items) {
-			const w = nodeWidths.get(agg.itemId) ?? NODE_BASE_WIDTH;
-			let cx = refinedX.get(agg.itemId) ?? START_X;
+		// Sort each group by desired X
+		anchoredItems.sort(
+			(a, b) => (desiredX.get(a.itemId) ?? 0) - (desiredX.get(b.itemId) ?? 0),
+		);
+		floatingItems.sort(
+			(a, b) => (desiredX.get(a.itemId) ?? 0) - (desiredX.get(b.itemId) ?? 0),
+		);
 
-			if (prevId !== null) {
-				const prevW = nodeWidths.get(prevId) ?? NODE_BASE_WIDTH;
-				const prevCX = positionX.get(prevId) ?? START_X;
-				const minCX = prevCX + prevW / 2 + X_GAP + w / 2;
-				if (cx < minCX) cx = minCX;
-			}
-
-			positionX.set(agg.itemId, cx);
-			prevId = agg.itemId;
-		}
-	}
-
-	// 3c: 1:1 group alignment — snap all members to the anchor member's X
-	for (const [groupId, members] of groupMembers) {
-		// Anchor = member with the most connections outside the group
-		let anchorId = members[0];
-		let maxConns = 0;
-		for (const memberId of members) {
-			let extConns = 0;
-			const cons = consumersOf.get(memberId);
-			if (cons) {
-				for (const c of cons) {
-					if (itemToGroup.get(c) !== groupId) extConns++;
+		// Phase 1: Place anchored items at their desired X with overlap resolution
+		{
+			let prevId: number | null = null;
+			for (const agg of anchoredItems) {
+				const w = nodeWidths.get(agg.itemId) ?? NODE_BASE_WIDTH;
+				let cx = desiredX.get(agg.itemId) ?? START_X;
+				if (prevId !== null) {
+					const prevW = nodeWidths.get(prevId) ?? NODE_BASE_WIDTH;
+					const prevCX = positionX.get(prevId) ?? START_X;
+					const minCX = prevCX + prevW / 2 + X_GAP + w / 2;
+					if (cx < minCX) cx = minCX;
 				}
-			}
-			const supps = suppliersOf.get(memberId);
-			if (supps) {
-				for (const s of supps) {
-					if (itemToGroup.get(s) !== groupId) extConns++;
-				}
-			}
-			if (extConns > maxConns) {
-				maxConns = extConns;
-				anchorId = memberId;
+				positionX.set(agg.itemId, cx);
+				prevId = agg.itemId;
 			}
 		}
 
-		const anchorX = positionX.get(anchorId) ?? START_X;
-		for (const memberId of members) {
-			positionX.set(memberId, anchorX);
-		}
-	}
-
-	// 3d: Final overlap resolution on all rows
-	for (const depth of sortedDepths) {
-		const items = depthGroups.get(depth) ?? [];
-
-		let prevId: number | null = null;
-		for (const agg of items) {
+		// Phase 2: Insert floating items at best available position
+		for (const agg of floatingItems) {
 			const w = nodeWidths.get(agg.itemId) ?? NODE_BASE_WIDTH;
-			let cx = positionX.get(agg.itemId) ?? START_X;
+			const desired = desiredX.get(agg.itemId) ?? START_X;
 
-			if (prevId !== null) {
-				const prevW = nodeWidths.get(prevId) ?? NODE_BASE_WIDTH;
-				const prevCX = positionX.get(prevId) ?? START_X;
-				const minCX = prevCX + prevW / 2 + X_GAP + w / 2;
-				if (cx < minCX) cx = minCX;
+			// Collect all placed items on this row, sorted by X
+			const placed = anchoredItems
+				.filter((a) => positionX.has(a.itemId))
+				.map((a) => ({
+					itemId: a.itemId,
+					cx: positionX.get(a.itemId) ?? 0,
+					w: nodeWidths.get(a.itemId) ?? NODE_BASE_WIDTH,
+				}));
+			// Also include already-placed floating items
+			for (const f of floatingItems) {
+				if (f === agg) continue;
+				if (!positionX.has(f.itemId)) continue;
+				placed.push({
+					itemId: f.itemId,
+					cx: positionX.get(f.itemId) ?? 0,
+					w: nodeWidths.get(f.itemId) ?? NODE_BASE_WIDTH,
+				});
 			}
+			placed.sort((a, b) => a.cx - b.cx);
 
-			positionX.set(agg.itemId, cx);
-			prevId = agg.itemId;
+			// Find nearest non-overlapping position to desired
+			const halfW = w / 2;
+			const overlaps = (cx: number) => {
+				for (const p of placed) {
+					const pHalfW = p.w / 2;
+					if (
+						cx + halfW + X_GAP > p.cx - pHalfW &&
+						cx - halfW - X_GAP < p.cx + pHalfW
+					) {
+						return true;
+					}
+				}
+				return false;
+			};
+
+			if (!overlaps(desired)) {
+				positionX.set(agg.itemId, desired);
+			} else {
+				// Try positions to the right of each placed item
+				let bestX = desired;
+				let bestDist = Number.MAX_SAFE_INTEGER;
+				for (const p of placed) {
+					const candidate = p.cx + p.w / 2 + X_GAP + halfW;
+					if (!overlaps(candidate)) {
+						const dist = Math.abs(candidate - desired);
+						if (dist < bestDist) {
+							bestDist = dist;
+							bestX = candidate;
+						}
+					}
+				}
+				// Also try position before the first placed item
+				if (placed.length > 0) {
+					const first = placed[0];
+					const candidate = first.cx - first.w / 2 - X_GAP - halfW;
+					if (candidate >= START_X + halfW && !overlaps(candidate)) {
+						const dist = Math.abs(candidate - desired);
+						if (dist < bestDist) {
+							bestDist = dist;
+							bestX = candidate;
+						}
+					}
+				}
+				// Fallback: place after last item
+				if (bestDist === Number.MAX_SAFE_INTEGER) {
+					if (placed.length > 0) {
+						const last = placed[placed.length - 1];
+						bestX = last.cx + last.w / 2 + X_GAP + halfW;
+					} else {
+						bestX = START_X + halfW;
+					}
+				}
+				positionX.set(agg.itemId, bestX);
+			}
 		}
+
+		// Update items order to match final X positions
+		items.sort(
+			(a, b) => (positionX.get(a.itemId) ?? 0) - (positionX.get(b.itemId) ?? 0),
+		);
 	}
 
 	// Create xyflow nodes using computed positions

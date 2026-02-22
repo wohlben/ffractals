@@ -8,6 +8,7 @@ import {
 	addTarget,
 	calculatorStore,
 	clearElementSource,
+	clearTotalsNodePositions,
 	getPerFacilityRate,
 	removeTarget,
 	selectElement,
@@ -38,6 +39,7 @@ export function useCalculator() {
 
 		addTarget,
 		clearElementSource,
+		clearTotalsNodePositions,
 		getPerFacilityRate,
 		removeTarget,
 		setElementRecipe,

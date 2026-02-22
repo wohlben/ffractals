@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 import { useState } from "react";
 import { GameIcon } from "@/components/ui/GameIcon";
 import {
@@ -9,10 +9,16 @@ import {
 import { DSPData } from "@/lib/data/dsp-data";
 
 export function Sidebar() {
-	const { targets, addTarget, getPerFacilityRate, removeTarget } =
-		useCalculator();
+	const {
+		targets,
+		addTarget,
+		getPerFacilityRate,
+		removeTarget,
+		clearTotalsNodePositions,
+	} = useCalculator();
 	const resourceNeeds = useResourceNeeds();
 	const facilitySummary = useFacilitySummary();
+	const location = useLocation();
 
 	const [selectedItemId, setSelectedItemId] = useState<number | null>(null);
 	const [facilityCount, setFacilityCount] = useState(1);
@@ -48,6 +54,15 @@ export function Sidebar() {
 					>
 						Totals View
 					</Link>
+					{location.pathname === "/totals" && (
+						<button
+							type="button"
+							onClick={clearTotalsNodePositions}
+							className="px-3 py-1 text-xs rounded bg-gray-800 text-gray-400 hover:text-gray-200 hover:bg-gray-700"
+						>
+							Recalculate
+						</button>
+					)}
 				</div>
 			</div>
 

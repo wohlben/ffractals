@@ -17,6 +17,7 @@ const config = defineConfig({
 	],
 	test: {
 		exclude: ["node_modules", "agent-browser", ".opencode"],
+		setupFiles: ["./src/test/setup.ts"],
 	},
 });
 

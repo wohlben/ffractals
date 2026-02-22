@@ -422,6 +422,13 @@ export function updateTotalsNodePosition(
 	});
 }
 
+export function clearTotalsNodePositions(): void {
+	calculatorStore.setState((state) => ({
+		...state,
+		totalsNodePositions: [],
+	}));
+}
+
 export function setViewState(viewState: ViewState): void {
 	calculatorStore.setState((state) => ({ ...state, viewState }));
 }
