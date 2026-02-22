@@ -16,9 +16,8 @@ const config = defineConfig({
 		viteReact(),
 	],
 	test: {
-		exclude: ["node_modules", "agent-browser", ".opencode", "**/*.test.tsx"],
-		setupFiles: [],
-		globals: true,
+		exclude: ["node_modules", "agent-browser", ".opencode"],
+		setupFiles: ["./src/test/setup.ts"],
 	},
 });
 
