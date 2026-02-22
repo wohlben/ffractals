@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { GameIcon } from "@/components/ui/GameIcon";
 import {
 	useCalculator,
 	useFacilitySummary,
@@ -15,10 +16,6 @@ export function Sidebar() {
 
 	const [selectedItemId, setSelectedItemId] = useState<number | null>(null);
 	const [facilityCount, setFacilityCount] = useState(1);
-
-	const getIconPath = (itemName: string) => {
-		return `/assets/images/Icon_${itemName.replace(/ /g, "_")}.png`;
-	};
 
 	return (
 		<aside className="w-80 border-r border-gray-700 bg-gray-900 flex flex-col h-screen">
@@ -80,7 +77,7 @@ export function Sidebar() {
 				</select>
 
 				<div className="flex gap-2 items-center">
-					<span className="text-gray-400 text-sm">×</span>
+					<span className="text-gray-400 text-sm">x</span>
 					<input
 						type="number"
 						value={facilityCount}
@@ -115,15 +112,7 @@ export function Sidebar() {
 							key={target.id}
 							className="flex items-center gap-2 p-2 rounded-lg border border-gray-700 bg-gray-800"
 						>
-							{item && (
-								<img
-									src={getIconPath(item.Name)}
-									alt={item.Name}
-									width={24}
-									height={24}
-									className="object-contain"
-								/>
-							)}
+							{item && <GameIcon name={item.Name} size={24} />}
 							<div className="flex-1 min-w-0">
 								<div className="font-medium text-sm text-gray-100 truncate">
 									{item?.Name}
@@ -197,7 +186,7 @@ export function Sidebar() {
 								>
 									<span>{item?.Name}</span>
 									<span>
-										×{Number.isInteger(count) ? count : count.toFixed(2)}
+										x{Number.isInteger(count) ? count : count.toFixed(2)}
 									</span>
 								</div>
 							);

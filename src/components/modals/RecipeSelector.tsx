@@ -1,3 +1,4 @@
+import { GameIcon } from "@/components/ui/GameIcon";
 import { useCalculator } from "@/hooks/use-calculator";
 import type { RecipeSource } from "@/lib/calculator/models";
 import { DSPData } from "@/lib/data/dsp-data";
@@ -25,23 +26,11 @@ export function RecipeSelector({ elementId, onClose }: RecipeSelectorProps) {
 	const canExtract = DSPData.canItemBeExtracted(itemId);
 	const item = DSPData.getItemById(itemId);
 
-	const getIconPath = (itemName: string) => {
-		return `/assets/images/Icon_${itemName.replace(/ /g, "_")}.png`;
-	};
-
 	return (
 		<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
 			<div className="bg-gray-900 rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-hidden">
 				<div className="p-4 border-b border-gray-700 flex items-center gap-3">
-					{item && (
-						<img
-							src={getIconPath(item.Name)}
-							alt={item.Name}
-							width={32}
-							height={32}
-							className="object-contain"
-						/>
-					)}
+					{item && <GameIcon name={item.Name} size={32} />}
 					<h2 className="text-lg font-semibold text-gray-100">
 						Select Source for {item?.Name}
 					</h2>
@@ -83,13 +72,7 @@ export function RecipeSelector({ elementId, onClose }: RecipeSelectorProps) {
 												}}
 												className="flex-1 flex items-center gap-3 p-3 text-left hover:bg-gray-800 transition-colors"
 											>
-												<img
-													src={getIconPath(recipe.Name)}
-													alt={recipe.Name}
-													width={40}
-													height={40}
-													className="object-contain"
-												/>
+												<GameIcon name={recipe.Name} size={40} />
 												<div className="flex-1 min-w-0">
 													<div className="font-medium text-gray-100">
 														{recipe.Name}
@@ -98,7 +81,7 @@ export function RecipeSelector({ elementId, onClose }: RecipeSelectorProps) {
 														{recipe.TimeSpend / 60}s | Inputs:{" "}
 														{recipe.Items.map((id, i) => (
 															<span key={id} className="ml-1">
-																{recipe.ItemCounts[i]}×{" "}
+																{recipe.ItemCounts[i]}x{" "}
 																{DSPData.getItemById(id)?.Name}
 															</span>
 														))}
@@ -188,13 +171,7 @@ export function RecipeSelector({ elementId, onClose }: RecipeSelectorProps) {
 								: "border-gray-700 hover:border-gray-500"
 						}`}
 					>
-						<img
-							src="/assets/images/Icon_Interstellar_Logistics_Station.png"
-							alt="ILS"
-							width={40}
-							height={40}
-							className="object-contain"
-						/>
+						<GameIcon name="Interstellar_Logistics_Station" size={40} />
 						<div>
 							<div className="font-medium text-gray-100">
 								Otherwise procured

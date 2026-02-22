@@ -20,7 +20,6 @@ interface AggregatedItem {
 	facilities: Map<number, number>; // facilityItemId → total count
 	sourceTypes: Set<SourceType>;
 	elementCount: number;
-	minDepth: number;
 	supplierItemIds: Set<number>; // items that feed into this one
 	recipeTypes: Set<string>; // recipe types used by elements of this item
 }
@@ -91,7 +90,6 @@ export function buildTotalsGraphFromState(
 				facilities: new Map(),
 				sourceTypes: new Set(),
 				elementCount: 0,
-				minDepth: element.depth,
 				supplierItemIds: new Set(),
 				recipeTypes: new Set(),
 			};
@@ -101,7 +99,6 @@ export function buildTotalsGraphFromState(
 		agg.requiredRate += element.requiredRate;
 		agg.actualRate += element.actualRate;
 		agg.elementCount += 1;
-		agg.minDepth = Math.min(agg.minDepth, element.depth);
 
 		if (element.source) {
 			agg.sourceTypes.add(element.source.type);
@@ -193,6 +190,45 @@ export function buildTotalsGraphFromState(
 		consumers.add(aggEdge.targetItemId);
 	}
 
+	// Compute display rows via longest-path BFS from leaves upward.
+	// Starting from leaves guarantees all raw materials share the same bottom row.
+	const leafItemIds: number[] = [];
+	for (const agg of itemMap.values()) {
+		if (agg.supplierItemIds.size === 0) {
+			leafItemIds.push(agg.itemId);
+		}
+	}
+
+	const distFromLeaf = new Map<number, number>();
+	for (const leafId of leafItemIds) {
+		distFromLeaf.set(leafId, 0);
+	}
+	const queue: number[] = [...leafItemIds];
+	while (queue.length > 0) {
+		const currentItemId = queue.shift()!;
+		const currentDist = distFromLeaf.get(currentItemId)!;
+		const consumers = consumersOf.get(currentItemId);
+		if (!consumers) continue;
+		for (const consumerId of consumers) {
+			const newDist = currentDist + 1;
+			if (newDist > (distFromLeaf.get(consumerId) ?? -1)) {
+				distFromLeaf.set(consumerId, newDist);
+				queue.push(consumerId);
+			}
+		}
+	}
+
+	// Invert so roots (highest distance from leaves) end up at row 0 (top)
+	const maxDist = Math.max(0, ...distFromLeaf.values());
+	const displayRow = new Map<number, number>();
+	for (const [itemId, dist] of distFromLeaf) {
+		displayRow.set(itemId, maxDist - dist);
+	}
+	// Force root items to row 0 in case multiple chains have different depths
+	for (const rootItemId of rootItemTargets.keys()) {
+		displayRow.set(rootItemId, 0);
+	}
+
 	// Compute per-node widths (mirrors TotalsNode.tsx sizing)
 	const nodeWidths = new Map<number, number>();
 	for (const agg of itemMap.values()) {
@@ -202,12 +238,13 @@ export function buildTotalsGraphFromState(
 		);
 	}
 
-	// Group by minDepth
+	// Group by displayRow
 	const depthGroups = new Map<number, AggregatedItem[]>();
 	for (const agg of itemMap.values()) {
-		const group = depthGroups.get(agg.minDepth) ?? [];
+		const row = displayRow.get(agg.itemId) ?? 0;
+		const group = depthGroups.get(row) ?? [];
 		group.push(agg);
-		depthGroups.set(agg.minDepth, group);
+		depthGroups.set(row, group);
 	}
 
 	const sortedDepths = Array.from(depthGroups.keys()).sort((a, b) => a - b);
@@ -223,9 +260,7 @@ export function buildTotalsGraphFromState(
 
 	// Helper: get the depth row index for an item
 	const depthRowOf = (itemId: number): number => {
-		const agg = itemMap.get(itemId);
-		if (!agg) return 0;
-		return sortedDepths.indexOf(agg.minDepth);
+		return sortedDepths.indexOf(displayRow.get(itemId) ?? 0);
 	};
 
 	for (const depth of sortedDepths) {
@@ -365,6 +400,62 @@ export function buildTotalsGraphFromState(
 		}
 	}
 
+	// Bottom-up refinement: adjust positions considering supplier positions below.
+	// The initial top-down pass only aligns nodes under their consumers, so nodes
+	// like Photon Combiner end up far from suppliers (Circuit Board, Prism).
+	// This pass pulls each node toward the centroid of ALL its neighbors.
+	for (let ri = sortedDepths.length - 2; ri >= 1; ri--) {
+		const depth = sortedDepths[ri];
+		const group = depthGroups.get(depth);
+		if (!group) continue;
+
+		const refinedX = new Map<number, number>();
+		for (const agg of group) {
+			const neighborXs: number[] = [];
+
+			const consumers = consumersOf.get(agg.itemId);
+			if (consumers) {
+				for (const cId of consumers) {
+					const cx = positionX.get(cId);
+					if (cx !== undefined) neighborXs.push(cx);
+				}
+			}
+
+			for (const sId of agg.supplierItemIds) {
+				const sx = positionX.get(sId);
+				if (sx !== undefined) neighborXs.push(sx);
+			}
+
+			if (neighborXs.length === 0) {
+				refinedX.set(agg.itemId, positionX.get(agg.itemId) ?? START_X);
+			} else {
+				const avg = neighborXs.reduce((a, b) => a + b, 0) / neighborXs.length;
+				refinedX.set(agg.itemId, avg);
+			}
+		}
+
+		// Sort by refined position and resolve overlaps
+		const sorted = [...group].sort(
+			(a, b) => (refinedX.get(a.itemId) ?? 0) - (refinedX.get(b.itemId) ?? 0),
+		);
+
+		let prevId: number | null = null;
+		for (const agg of sorted) {
+			const w = nodeWidths.get(agg.itemId) ?? NODE_BASE_WIDTH;
+			let cx = refinedX.get(agg.itemId) ?? START_X;
+
+			if (prevId !== null) {
+				const prevW = nodeWidths.get(prevId) ?? NODE_BASE_WIDTH;
+				const prevCX = positionX.get(prevId) ?? START_X;
+				const minCX = prevCX + prevW / 2 + X_GAP + w / 2;
+				if (cx < minCX) cx = minCX;
+			}
+
+			positionX.set(agg.itemId, cx);
+			prevId = agg.itemId;
+		}
+	}
+
 	// Create xyflow nodes using computed positions
 	const nodes: Node[] = [];
 	for (const depth of sortedDepths) {
@@ -397,7 +488,7 @@ export function buildTotalsGraphFromState(
 				});
 			}
 
-			const isRoot = agg.minDepth === 0;
+			const isRoot = rootItemTargets.has(agg.itemId);
 			const targetIds = rootItemTargets.get(agg.itemId) ?? [];
 			const recipeType =
 				agg.recipeTypes.size === 1 ? Array.from(agg.recipeTypes)[0] : null;
