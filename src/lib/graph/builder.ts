@@ -206,6 +206,16 @@ function createNodeData(
 			element.source?.type === "recipe"
 				? ((element.source as RecipeSource).recipeType ?? null)
 				: null,
+		// Proliferator data
+		proliferatorMode: element.facility?.modifier.mode ?? "none",
+		proliferatorLevel: element.facility?.modifier.level ?? 0,
+		proliferatorConsumption: element.proliferatorConsumption
+			? {
+					itemId: element.proliferatorConsumption.itemId,
+					itemsPerCraft: element.proliferatorConsumption.itemsPerCraft,
+					itemsPerSecond: element.proliferatorConsumption.itemsPerSecond,
+				}
+			: undefined,
 	};
 
 	// Add cycle information based on source type

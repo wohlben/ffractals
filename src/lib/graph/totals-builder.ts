@@ -22,6 +22,7 @@ interface AggregatedItem {
 	elementCount: number;
 	supplierItemIds: Set<number>; // items that feed into this one
 	recipeTypes: Set<string>; // recipe types used by elements of this item
+	proliferatorConsumption: Map<number, number>; // proliferatorItemId → items/sec
 }
 
 interface AggregatedEdge {
@@ -92,6 +93,7 @@ export function buildTotalsGraphFromState(
 				elementCount: 0,
 				supplierItemIds: new Set(),
 				recipeTypes: new Set(),
+				proliferatorConsumption: new Map(),
 			};
 			itemMap.set(element.itemId, agg);
 		}
@@ -115,6 +117,18 @@ export function buildTotalsGraphFromState(
 			agg.facilities.set(
 				element.facility.itemId,
 				prev + element.facility.count,
+			);
+		}
+
+		// Aggregate proliferator consumption
+		if (element.proliferatorConsumption) {
+			const current =
+				agg.proliferatorConsumption.get(
+					element.proliferatorConsumption.itemId,
+				) ?? 0;
+			agg.proliferatorConsumption.set(
+				element.proliferatorConsumption.itemId,
+				current + element.proliferatorConsumption.itemsPerSecond,
 			);
 		}
 	}
@@ -614,6 +628,14 @@ export function buildTotalsGraphFromState(
 			const recipeType =
 				agg.recipeTypes.size === 1 ? Array.from(agg.recipeTypes)[0] : null;
 
+			// Convert proliferator consumption map to array for the node data
+			const proliferatorSummary = Array.from(
+				agg.proliferatorConsumption.entries(),
+			).map(([prolifItemId, rate]) => ({
+				itemId: prolifItemId,
+				totalItemsPerSecond: rate,
+			}));
+
 			nodes.push({
 				id: `totals-${agg.itemId}`,
 				type: "totals",
@@ -639,6 +661,7 @@ export function buildTotalsGraphFromState(
 							itemName: suppItem?.Name ?? "",
 						};
 					}),
+					proliferatorSummary,
 				},
 			});
 		}

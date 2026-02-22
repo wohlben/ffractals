@@ -31,6 +31,10 @@ interface TotalsNodeData extends Record<string, unknown> {
 	isRoot: boolean;
 	targetIds: string[];
 	recipeType: string | null;
+	proliferatorSummary?: Array<{
+		itemId: number;
+		totalItemsPerSecond: number;
+	}>;
 }
 
 type TotalsNode = Node<TotalsNodeData, "totals">;
@@ -186,6 +190,24 @@ export function TotalsNode({ data, selected }: NodeProps<TotalsNode>) {
 				{data.elementCount > 1 && (
 					<div className="mt-1 text-xs text-amber-500/70">
 						{data.elementCount} nodes merged
+					</div>
+				)}
+
+				{/* Proliferator consumption */}
+				{data.proliferatorSummary && data.proliferatorSummary.length > 0 && (
+					<div className="mt-2 border-t border-gray-700 pt-2">
+						<div className="text-xs text-gray-500 mb-1">Proliferators</div>
+						{data.proliferatorSummary.map((prolif) => {
+							const item = DSPData.getItemById(prolif.itemId);
+							return (
+								<div key={prolif.itemId} className="flex items-center gap-1">
+									{item && <GameIcon name={item.Name} size={16} />}
+									<span className="text-xs text-gray-400">
+										{prolif.totalItemsPerSecond.toFixed(3)}/s
+									</span>
+								</div>
+							);
+						})}
 					</div>
 				)}
 			</div>

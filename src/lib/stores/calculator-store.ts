@@ -12,6 +12,7 @@ import type {
 import {
 	calculateInputRate,
 	calculateOutputRate,
+	calculateProliferatorConsumption,
 	calculateRequiredFacilities,
 	createBaseElement,
 	expandElementWithRecipe,
@@ -727,6 +728,127 @@ export function updateElementFacilityType(
 		return {
 			...state,
 			elements: { ...state.elements, [elementId]: updated },
+		};
+	});
+}
+
+function getProliferatorItemIdForLevel(level: number): number {
+	switch (level) {
+		case 1:
+			return 1141; // Mk.I
+		case 2:
+			return 1142; // Mk.II
+		case 3:
+			return 1143; // Mk.III
+		default:
+			return 1141;
+	}
+}
+
+export function updateElementProliferator(
+	elementId: string,
+	mode: ProliferatorMode,
+	level: number,
+	proliferatorItemId?: number,
+): void {
+	calculatorStore.setState((state) => {
+		const element = state.elements[elementId];
+		if (!element?.source || !element.facility) return state;
+		if (element.source.type !== "recipe") return state;
+
+		const recipeSource =
+			element.source as import("../calculator/models").RecipeSource;
+		const recipe = getContext().getRecipeById(recipeSource.recipeId);
+		if (!recipe) return state;
+
+		// Determine which proliferator item to use based on level
+		const prolifItemId =
+			proliferatorItemId ?? getProliferatorItemIdForLevel(level);
+
+		// Create updated modifier
+		const newModifier: import("../calculator/models").ModifierConfig = {
+			mode,
+			level,
+		};
+
+		// Recalculate output rate with new modifier
+		const targetOutput = recipe.outputs.find(
+			(o) => o.itemId === element.itemId,
+		);
+		if (!targetOutput) return state;
+
+		const outputRate = calculateOutputRate(
+			targetOutput.count,
+			recipe.timeSpend,
+			element.facility.speedMultiplier,
+			newModifier,
+		);
+
+		const facilitiesNeeded = calculateRequiredFacilities(
+			element.requiredRate,
+			outputRate,
+		);
+
+		// Calculate proliferator consumption
+		const prolifConsumption = calculateProliferatorConsumption(
+			recipe.inputs,
+			recipe.timeSpend,
+			element.facility.speedMultiplier,
+			newModifier,
+			facilitiesNeeded,
+			prolifItemId,
+		);
+
+		// Update the element
+		const updatedElement: CalculationElement = {
+			...element,
+			facility: {
+				...element.facility,
+				modifier: newModifier,
+				proliferatorItemId: mode === "none" ? undefined : prolifItemId,
+			},
+			proliferatorConsumption: prolifConsumption ?? undefined,
+		};
+
+		// Recalculate children's required rates
+		const elementsWithUpdate = {
+			...state.elements,
+			[elementId]: updatedElement,
+		};
+
+		for (let i = 0; i < element.inputs.length; i++) {
+			const childId = element.inputs[i];
+			const child = elementsWithUpdate[childId];
+			if (!child) continue;
+
+			const input = recipe.inputs[i];
+			if (!input) continue;
+
+			const inputRate =
+				calculateInputRate(
+					input.count,
+					recipe.timeSpend,
+					element.facility.speedMultiplier,
+					newModifier,
+				) * facilitiesNeeded;
+
+			elementsWithUpdate[childId] = { ...child, requiredRate: inputRate };
+		}
+
+		// Recalculate subtree
+		const subtreeUpdates: Record<string, CalculationElement> = {};
+		for (const childId of element.inputs) {
+			const childSubtreeUpdates = recalculateSubtree(
+				childId,
+				elementsWithUpdate,
+				getContext(),
+			);
+			Object.assign(subtreeUpdates, childSubtreeUpdates);
+		}
+
+		return {
+			...state,
+			elements: { ...elementsWithUpdate, ...subtreeUpdates },
 		};
 	});
 }

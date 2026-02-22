@@ -13,7 +13,13 @@ import type {
 	RecipeSource,
 	ResourceNeeds,
 } from "./models";
-import { getProliferatorMultiplier, TICKS_PER_SECOND } from "./models";
+import {
+	DEFAULT_PROLIFERATOR_CHARGES,
+	getProliferatorMultiplier,
+	PROLIFERATOR_CHARGES,
+	type ProliferatorConsumption,
+	TICKS_PER_SECOND,
+} from "./models";
 
 export { getProliferatorMultiplier };
 
@@ -40,8 +46,20 @@ export function calculateInputRate(
 	modifier: ModifierConfig,
 ): number {
 	const baseRate = inputCount / (recipeTime / TICKS_PER_SECOND);
+
+	if (modifier.mode === "product") {
+		// Product mode: inputs are reduced because we get more output per input
+		// Input rate = baseRate * speed / productMultiplier
+		const productMultiplier = getProliferatorMultiplier(
+			"product",
+			modifier.level,
+		);
+		return (baseRate * facilitySpeed) / productMultiplier;
+	}
+
+	// Speed mode (or none): inputs scale with speed
 	const speedMultiplier =
-		facilitySpeed * getProliferatorMultiplier(modifier.mode, modifier.level);
+		facilitySpeed * getProliferatorMultiplier("speed", modifier.level);
 	return baseRate * speedMultiplier;
 }
 
@@ -51,6 +69,59 @@ export function calculateRequiredFacilities(
 ): number {
 	if (outputRate <= 0) return 0;
 	return requiredRate / outputRate;
+}
+
+export function calculateProliferatorConsumption(
+	recipeInputs: Array<{ itemId: number; count: number }>,
+	recipeTime: number,
+	facilitySpeed: number,
+	modifier: ModifierConfig,
+	facilityCount: number,
+	proliferatorItemId: number,
+): ProliferatorConsumption | null {
+	// No consumption if not using proliferators
+	if (modifier.mode === "none" || modifier.level === 0) {
+		return null;
+	}
+
+	// Calculate total input items per craft
+	const totalInputsPerCraft = recipeInputs.reduce(
+		(sum, input) => sum + input.count,
+		0,
+	);
+
+	if (totalInputsPerCraft === 0) {
+		return null;
+	}
+
+	// Get charges for this proliferator level
+	const chargesPerItem =
+		PROLIFERATOR_CHARGES[proliferatorItemId] ?? DEFAULT_PROLIFERATOR_CHARGES;
+
+	// Calculate crafts per second per facility
+	const craftsPerSecondPerFacility =
+		(TICKS_PER_SECOND / recipeTime) * facilitySpeed;
+	const totalCraftsPerSecond = craftsPerSecondPerFacility * facilityCount;
+
+	// Charges consumed per craft = total input items (each input item uses 1 charge)
+	const chargesPerCraft = totalInputsPerCraft;
+
+	// Charges consumed per second
+	const chargesPerSecond = chargesPerCraft * totalCraftsPerSecond;
+
+	// Items consumed per craft (fractional)
+	const itemsPerCraft = chargesPerCraft / chargesPerItem;
+
+	// Items consumed per second
+	const itemsPerSecond = chargesPerSecond / chargesPerItem;
+
+	return {
+		itemId: proliferatorItemId,
+		chargesPerCraft,
+		itemsPerCraft,
+		chargesPerSecond,
+		itemsPerSecond,
+	};
 }
 
 export function calculateMiningRate(miningTime: number): number {
