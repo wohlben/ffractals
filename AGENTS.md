@@ -53,20 +53,23 @@ Core Mechanics of the calculation include things like
 **BEFORE committing any code, you MUST run the code review agent.**
 
 The code review agent will:
-1. Analyze your changes for bad practices
-2. Create beads issues for problems found
-3. Block commits until critical issues are resolved
+1. **Challenge requirements** - Verify changes actually solve the stated problem
+2. **Question approach** - Check for over-engineering and simpler solutions
+3. **Analyze code quality** - Find bad practices and technical issues
+4. **Create beads issues** - Track problems that MUST be resolved
+5. **Block commits** - Prevent commits with critical issues
 
 ```bash
-# Run code review on all staged changes
-task subagent_type=code-reviewer prompt="Review all staged changes before commit"
+# Full review with requirement validation (RECOMMENDED)
+task subagent_type=code-reviewer prompt="Review all staged changes. Challenge whether they actually solve the stated requirements. Check for over-engineering and missing edge cases."
 
 # Check for blocking issues
 bd list --status=open --label=pre-commit-blocker
 ```
 
 **DO NOT commit if:**
-- Any P0 (critical) issues exist
+- Any P0 (critical) technical issues exist
+- Solution doesn't actually solve the stated problem
 - Type safety violations are present
 - Tests are failing
 - Linting errors remain
@@ -75,7 +78,15 @@ bd list --status=open --label=pre-commit-blocker
 
 See `.opencode/skills/code-review.md` for detailed review criteria.
 
-The agent checks for:
+The agent challenges TWO dimensions:
+
+### 1. Requirement Validation (Critical)
+- Does this actually solve the stated problem?
+- Is this the simplest solution?
+- Are we solving the right problem?
+- What edge cases are missing?
+
+### 2. Technical Quality
 - Type safety (no `any`, proper generics)
 - Code quality (pure functions, error handling)
 - React best practices (proper hooks, memoization)
@@ -85,21 +96,37 @@ The agent checks for:
 
 ## Blocking Issues
 
-These MUST be fixed before committing:
+### Technical Blockers (P0)
 1. `any` types or unsafe casts
 2. Logic errors causing runtime failures
 3. Security vulnerabilities
 4. Test failures
 5. Lint errors
 
+### Requirement Validation Blockers (P1, escalatable)
+1. Solution doesn't solve the stated problem
+2. Over-engineering for the requirement
+3. Missing critical edge cases
+4. Wrong level of abstraction
+
 ## Workflow
 
 ```
-Make changes → Run code review → Issues found?
+Make changes
     ↓
-Yes → Create beads tickets → Fix blockers → Re-review
+Run code review with requirement validation
     ↓
-No issues → Run quality gates → Commit → Push
+Does it actually solve the problem?
+    ↓
+NO → Redesign and retry
+    ↓
+YES → Check for technical issues
+    ↓
+Issues found?
+    ↓
+YES → Create beads tickets → Fix blockers → Re-review
+    ↓
+NO issues → Run quality gates → Commit → Push
 ```
 
 # Coding rules
