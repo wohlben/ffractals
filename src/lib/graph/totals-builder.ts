@@ -251,205 +251,316 @@ export function buildTotalsGraphFromState(
 
 	const sortedDepths = Array.from(depthGroups.keys()).sort((a, b) => a - b);
 
-	// positionX stores center-X for each itemId
-	const positionX = new Map<number, number>();
+	// --- Bottom-up layout algorithm ---
+	// 1. Form rigid 1:1 groups (vertical chains)
+	// 2. Barycenter ordering with alternating sweeps
+	// 3. X coordinate assignment with group alignment
 
-	// Helper: get suppliers of a given item (items that feed into it)
-	const suppliersOf = (itemId: number): number[] => {
-		const agg = itemMap.get(itemId);
-		return agg ? Array.from(agg.supplierItemIds) : [];
-	};
+	// Build suppliersOf map for symmetric graph access
+	const suppliersOf = new Map<number, Set<number>>();
+	for (const agg of itemMap.values()) {
+		suppliersOf.set(agg.itemId, new Set(agg.supplierItemIds));
+	}
 
-	// Helper: get the depth row index for an item
-	const depthRowOf = (itemId: number): number => {
-		return sortedDepths.indexOf(displayRow.get(itemId) ?? 0);
-	};
+	// Step 1: Form 1:1 groups (rigid vertical chains)
+	// Chain continues while: item has exactly 1 consumer AND that consumer
+	// has exactly 1 supplier. These items always share the same X position.
+	const itemToGroup = new Map<number, number>();
+	const groupMembers = new Map<number, number[]>(); // groupId → [bottom, ..., top]
+	const groupVisited = new Set<number>();
 
-	for (const depth of sortedDepths) {
-		const group = depthGroups.get(depth);
-		if (!group) continue;
+	for (const depth of [...sortedDepths].reverse()) {
+		const items = depthGroups.get(depth);
+		if (!items) continue;
+		for (const agg of items) {
+			if (groupVisited.has(agg.itemId)) continue;
 
-		// Sort items by name as initial ordering
-		group.sort((a, b) => {
-			const nameA = DSPData.getItemById(a.itemId)?.Name ?? "";
-			const nameB = DSPData.getItemById(b.itemId)?.Name ?? "";
-			return nameA.localeCompare(nameB);
-		});
+			const chain: number[] = [agg.itemId];
+			groupVisited.add(agg.itemId);
 
-		const row = sortedDepths.indexOf(depth);
-
-		if (row === 0) {
-			// Depth 0: lay out left-to-right using actual widths
-			let currentX = START_X;
-			for (const agg of group) {
-				const w = nodeWidths.get(agg.itemId) ?? NODE_BASE_WIDTH;
-				positionX.set(agg.itemId, currentX + w / 2);
-				currentX += w + X_GAP;
-			}
-		} else {
-			// Compute ideal center-X for each node based on consumers
-			const idealX = new Map<number, number>();
-
-			for (const agg of group) {
-				const consumers = consumersOf.get(agg.itemId);
-				if (!consumers || consumers.size === 0) {
-					// Orphan — will be placed at the right end
-					idealX.set(agg.itemId, Number.MAX_SAFE_INTEGER);
-				} else if (consumers.size === 1) {
-					// Single consumer — align with it
-					const consumerId = consumers.values().next().value;
-					if (consumerId === undefined) {
-						idealX.set(agg.itemId, START_X);
-					} else {
-						idealX.set(agg.itemId, positionX.get(consumerId) ?? START_X);
-					}
-				} else {
-					// Multiple consumers — align with deepest; if tied, average
-					let maxRow = -1;
-					const candidates: number[] = [];
-					for (const cId of consumers) {
-						const cRow = depthRowOf(cId);
-						if (cRow > maxRow) {
-							maxRow = cRow;
-							candidates.length = 0;
-							candidates.push(cId);
-						} else if (cRow === maxRow) {
-							candidates.push(cId);
-						}
-					}
-					const avgX =
-						candidates.reduce(
-							(sum, cId) => sum + (positionX.get(cId) ?? START_X),
-							0,
-						) / candidates.length;
-					idealX.set(agg.itemId, avgX);
-				}
+			let current = agg.itemId;
+			while (true) {
+				const cons = consumersOf.get(current);
+				if (!cons || cons.size !== 1) break;
+				const consumer = cons.values().next().value;
+				if (consumer === undefined) break;
+				const consumerSupps = suppliersOf.get(consumer);
+				if (!consumerSupps || consumerSupps.size !== 1) break;
+				if (groupVisited.has(consumer)) break;
+				chain.push(consumer);
+				groupVisited.add(consumer);
+				current = consumer;
 			}
 
-			// Sibling spreading: group nodes that share the same single consumer
-			// (and that consumer has >1 supplier). Spread each group evenly
-			// centered under their shared consumer.
-			const consumerGroups = new Map<number, AggregatedItem[]>();
-			const ungrouped: AggregatedItem[] = [];
-
-			for (const agg of group) {
-				const consumers = consumersOf.get(agg.itemId);
-				if (consumers && consumers.size === 1) {
-					const consumerId = consumers.values().next().value;
-					if (consumerId === undefined) continue;
-					const consumerSupplierCount = suppliersOf(consumerId).length;
-					if (consumerSupplierCount > 1) {
-						const siblings = consumerGroups.get(consumerId) ?? [];
-						siblings.push(agg);
-						consumerGroups.set(consumerId, siblings);
-						continue;
-					}
-				}
-				ungrouped.push(agg);
-			}
-
-			// Apply sibling spreading
-			for (const [consumerId, siblings] of consumerGroups) {
-				const consumerCX = positionX.get(consumerId) ?? START_X;
-				// Sort siblings by their ideal position for consistent ordering
-				siblings.sort((a, b) => {
-					const nameA = DSPData.getItemById(a.itemId)?.Name ?? "";
-					const nameB = DSPData.getItemById(b.itemId)?.Name ?? "";
-					return nameA.localeCompare(nameB);
-				});
-
-				// Compute total width of sibling group
-				let totalWidth = 0;
-				for (let i = 0; i < siblings.length; i++) {
-					if (i > 0) totalWidth += X_GAP;
-					totalWidth += nodeWidths.get(siblings[i].itemId) ?? NODE_BASE_WIDTH;
-				}
-
-				// Spread evenly centered under consumer
-				let cx = consumerCX - totalWidth / 2;
-				for (const sib of siblings) {
-					const w = nodeWidths.get(sib.itemId) ?? NODE_BASE_WIDTH;
-					idealX.set(sib.itemId, cx + w / 2);
-					cx += w + X_GAP;
-				}
-			}
-
-			// Build sorted list of all nodes at this depth by ideal X
-			const allAtDepth = [...group].sort(
-				(a, b) => (idealX.get(a.itemId) ?? 0) - (idealX.get(b.itemId) ?? 0),
-			);
-
-			// Overlap resolution: sweep left-to-right
-			let prevId: number | null = null;
-			for (const agg of allAtDepth) {
-				const w = nodeWidths.get(agg.itemId) ?? NODE_BASE_WIDTH;
-				let cx = idealX.get(agg.itemId) ?? START_X;
-
-				if (prevId !== null) {
-					const prevW = nodeWidths.get(prevId) ?? NODE_BASE_WIDTH;
-					const prevCX = positionX.get(prevId) ?? START_X;
-					const minCX = prevCX + prevW / 2 + X_GAP + w / 2;
-					if (cx < minCX) {
-						cx = minCX;
-					}
-				}
-
-				positionX.set(agg.itemId, cx);
-				prevId = agg.itemId;
-			}
-
-			// Place orphans at the right end
-			for (const agg of allAtDepth) {
-				if (idealX.get(agg.itemId) === Number.MAX_SAFE_INTEGER) {
-					// Already handled by overlap resolution pushing them right
+			if (chain.length >= 2) {
+				const groupId = chain[0]; // bottommost item as group ID
+				groupMembers.set(groupId, chain);
+				for (const id of chain) {
+					itemToGroup.set(id, groupId);
 				}
 			}
 		}
 	}
 
-	// Bottom-up refinement: adjust positions considering supplier positions below.
-	// The initial top-down pass only aligns nodes under their consumers, so nodes
-	// like Photon Combiner end up far from suppliers (Circuit Board, Prism).
-	// This pass pulls each node toward the centroid of ALL its neighbors.
-	for (let ri = sortedDepths.length - 2; ri >= 1; ri--) {
+	// Step 2: Barycenter ordering with alternating sweeps
+	// Group members share a slot key so they maintain alignment across rows
+	const orderKey = (itemId: number): string => {
+		const gid = itemToGroup.get(itemId);
+		return gid !== undefined ? `g-${gid}` : `f-${itemId}`;
+	};
+	const slotPos = new Map<string, number>();
+
+	// Initialize bottom row: cluster items by shared consumer
+	const bottomDepth = sortedDepths[sortedDepths.length - 1];
+	const bottomItems = depthGroups.get(bottomDepth) ?? [];
+	bottomItems.sort((a, b) => {
+		const consA = consumersOf.get(a.itemId);
+		const consB = consumersOf.get(b.itemId);
+		const pA =
+			consA && consA.size > 0 ? Math.min(...consA) : Number.MAX_SAFE_INTEGER;
+		const pB =
+			consB && consB.size > 0 ? Math.min(...consB) : Number.MAX_SAFE_INTEGER;
+		if (pA !== pB) return pA - pB;
+		const nameA = DSPData.getItemById(a.itemId)?.Name ?? "";
+		const nameB = DSPData.getItemById(b.itemId)?.Name ?? "";
+		return nameA.localeCompare(nameB);
+	});
+	for (let i = 0; i < bottomItems.length; i++) {
+		slotPos.set(orderKey(bottomItems[i].itemId), i);
+	}
+
+	// Initialize other rows by name
+	for (const depth of sortedDepths) {
+		if (depth === bottomDepth) continue;
+		const items = depthGroups.get(depth) ?? [];
+		items.sort((a, b) => {
+			const nameA = DSPData.getItemById(a.itemId)?.Name ?? "";
+			const nameB = DSPData.getItemById(b.itemId)?.Name ?? "";
+			return nameA.localeCompare(nameB);
+		});
+		for (let i = 0; i < items.length; i++) {
+			slotPos.set(orderKey(items[i].itemId), i);
+		}
+	}
+
+	// Alternating sweeps: 4 iterations of up + down
+	for (let sweep = 0; sweep < 4; sweep++) {
+		// Upward: order each row by barycenter of suppliers below
+		for (let ri = sortedDepths.length - 2; ri >= 0; ri--) {
+			const depth = sortedDepths[ri];
+			const items = depthGroups.get(depth) ?? [];
+
+			for (const agg of items) {
+				const supps = suppliersOf.get(agg.itemId);
+				if (!supps || supps.size === 0) continue;
+				let sum = 0;
+				let count = 0;
+				for (const sId of supps) {
+					const pos = slotPos.get(orderKey(sId));
+					if (pos !== undefined) {
+						sum += pos;
+						count++;
+					}
+				}
+				if (count > 0) slotPos.set(orderKey(agg.itemId), sum / count);
+			}
+
+			items.sort((a, b) => {
+				const posA = slotPos.get(orderKey(a.itemId)) ?? 0;
+				const posB = slotPos.get(orderKey(b.itemId)) ?? 0;
+				if (posA !== posB) return posA - posB;
+				const nameA = DSPData.getItemById(a.itemId)?.Name ?? "";
+				const nameB = DSPData.getItemById(b.itemId)?.Name ?? "";
+				return nameA.localeCompare(nameB);
+			});
+			for (let i = 0; i < items.length; i++) {
+				slotPos.set(orderKey(items[i].itemId), i);
+			}
+		}
+
+		// Downward: order each row by barycenter of consumers above
+		for (let ri = 1; ri < sortedDepths.length; ri++) {
+			const depth = sortedDepths[ri];
+			const items = depthGroups.get(depth) ?? [];
+
+			for (const agg of items) {
+				const cons = consumersOf.get(agg.itemId);
+				if (!cons || cons.size === 0) continue;
+				let sum = 0;
+				let count = 0;
+				for (const cId of cons) {
+					const pos = slotPos.get(orderKey(cId));
+					if (pos !== undefined) {
+						sum += pos;
+						count++;
+					}
+				}
+				if (count > 0) slotPos.set(orderKey(agg.itemId), sum / count);
+			}
+
+			items.sort((a, b) => {
+				const posA = slotPos.get(orderKey(a.itemId)) ?? 0;
+				const posB = slotPos.get(orderKey(b.itemId)) ?? 0;
+				if (posA !== posB) return posA - posB;
+				const nameA = DSPData.getItemById(a.itemId)?.Name ?? "";
+				const nameB = DSPData.getItemById(b.itemId)?.Name ?? "";
+				return nameA.localeCompare(nameB);
+			});
+			for (let i = 0; i < items.length; i++) {
+				slotPos.set(orderKey(items[i].itemId), i);
+			}
+		}
+	}
+
+	// Step 3: X coordinate assignment
+	const positionX = new Map<number, number>();
+
+	// 3a: Bottom-up placement — center each item over its already-placed suppliers
+	for (let ri = sortedDepths.length - 1; ri >= 0; ri--) {
 		const depth = sortedDepths[ri];
-		const group = depthGroups.get(depth);
-		if (!group) continue;
+		const items = depthGroups.get(depth) ?? [];
+
+		for (const agg of items) {
+			// If group member with already-placed sibling, align to it
+			const gid = itemToGroup.get(agg.itemId);
+			if (gid !== undefined) {
+				const members = groupMembers.get(gid);
+				if (members) {
+					const placed = members.find(
+						(m) => m !== agg.itemId && positionX.has(m),
+					);
+					if (placed !== undefined) {
+						positionX.set(agg.itemId, positionX.get(placed) ?? START_X);
+						continue;
+					}
+				}
+			}
+
+			// Center over already-placed suppliers
+			const supps = suppliersOf.get(agg.itemId);
+			if (supps && supps.size > 0) {
+				const xs: number[] = [];
+				for (const sId of supps) {
+					const sx = positionX.get(sId);
+					if (sx !== undefined) xs.push(sx);
+				}
+				if (xs.length > 0) {
+					positionX.set(
+						agg.itemId,
+						xs.reduce((sum, x) => sum + x, 0) / xs.length,
+					);
+				}
+			}
+			// No placed suppliers yet — will be set by overlap resolution
+		}
+
+		// Overlap resolution: sweep left-to-right in barycenter slot order
+		let prevId: number | null = null;
+		for (const agg of items) {
+			const w = nodeWidths.get(agg.itemId) ?? NODE_BASE_WIDTH;
+			let cx = positionX.get(agg.itemId) ?? START_X + w / 2;
+
+			if (prevId !== null) {
+				const prevW = nodeWidths.get(prevId) ?? NODE_BASE_WIDTH;
+				const prevCX = positionX.get(prevId) ?? START_X;
+				const minCX = prevCX + prevW / 2 + X_GAP + w / 2;
+				if (cx < minCX) cx = minCX;
+			}
+
+			positionX.set(agg.itemId, cx);
+			prevId = agg.itemId;
+		}
+	}
+
+	// 3b: Top-down refinement — pull each item toward centroid of all neighbors
+	for (let ri = 1; ri < sortedDepths.length; ri++) {
+		const depth = sortedDepths[ri];
+		const items = depthGroups.get(depth) ?? [];
 
 		const refinedX = new Map<number, number>();
-		for (const agg of group) {
+		for (const agg of items) {
 			const neighborXs: number[] = [];
-
-			const consumers = consumersOf.get(agg.itemId);
-			if (consumers) {
-				for (const cId of consumers) {
+			const cons = consumersOf.get(agg.itemId);
+			if (cons) {
+				for (const cId of cons) {
 					const cx = positionX.get(cId);
 					if (cx !== undefined) neighborXs.push(cx);
 				}
 			}
-
-			for (const sId of agg.supplierItemIds) {
-				const sx = positionX.get(sId);
-				if (sx !== undefined) neighborXs.push(sx);
+			const supps = suppliersOf.get(agg.itemId);
+			if (supps) {
+				for (const sId of supps) {
+					const sx = positionX.get(sId);
+					if (sx !== undefined) neighborXs.push(sx);
+				}
 			}
-
-			if (neighborXs.length === 0) {
-				refinedX.set(agg.itemId, positionX.get(agg.itemId) ?? START_X);
+			if (neighborXs.length > 0) {
+				refinedX.set(
+					agg.itemId,
+					neighborXs.reduce((sum, x) => sum + x, 0) / neighborXs.length,
+				);
 			} else {
-				const avg = neighborXs.reduce((a, b) => a + b, 0) / neighborXs.length;
-				refinedX.set(agg.itemId, avg);
+				refinedX.set(agg.itemId, positionX.get(agg.itemId) ?? START_X);
 			}
 		}
 
-		// Sort by refined position and resolve overlaps
-		const sorted = [...group].sort(
-			(a, b) => (refinedX.get(a.itemId) ?? 0) - (refinedX.get(b.itemId) ?? 0),
-		);
-
+		// Overlap resolution maintaining slot order
 		let prevId: number | null = null;
-		for (const agg of sorted) {
+		for (const agg of items) {
 			const w = nodeWidths.get(agg.itemId) ?? NODE_BASE_WIDTH;
 			let cx = refinedX.get(agg.itemId) ?? START_X;
+
+			if (prevId !== null) {
+				const prevW = nodeWidths.get(prevId) ?? NODE_BASE_WIDTH;
+				const prevCX = positionX.get(prevId) ?? START_X;
+				const minCX = prevCX + prevW / 2 + X_GAP + w / 2;
+				if (cx < minCX) cx = minCX;
+			}
+
+			positionX.set(agg.itemId, cx);
+			prevId = agg.itemId;
+		}
+	}
+
+	// 3c: 1:1 group alignment — snap all members to the anchor member's X
+	for (const [groupId, members] of groupMembers) {
+		// Anchor = member with the most connections outside the group
+		let anchorId = members[0];
+		let maxConns = 0;
+		for (const memberId of members) {
+			let extConns = 0;
+			const cons = consumersOf.get(memberId);
+			if (cons) {
+				for (const c of cons) {
+					if (itemToGroup.get(c) !== groupId) extConns++;
+				}
+			}
+			const supps = suppliersOf.get(memberId);
+			if (supps) {
+				for (const s of supps) {
+					if (itemToGroup.get(s) !== groupId) extConns++;
+				}
+			}
+			if (extConns > maxConns) {
+				maxConns = extConns;
+				anchorId = memberId;
+			}
+		}
+
+		const anchorX = positionX.get(anchorId) ?? START_X;
+		for (const memberId of members) {
+			positionX.set(memberId, anchorX);
+		}
+	}
+
+	// 3d: Final overlap resolution on all rows
+	for (const depth of sortedDepths) {
+		const items = depthGroups.get(depth) ?? [];
+
+		let prevId: number | null = null;
+		for (const agg of items) {
+			const w = nodeWidths.get(agg.itemId) ?? NODE_BASE_WIDTH;
+			let cx = positionX.get(agg.itemId) ?? START_X;
 
 			if (prevId !== null) {
 				const prevW = nodeWidths.get(prevId) ?? NODE_BASE_WIDTH;
