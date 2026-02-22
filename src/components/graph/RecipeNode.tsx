@@ -1,6 +1,7 @@
 import { Handle, type Node, type NodeProps, Position } from "@xyflow/react";
 import { useState } from "react";
 import { FacilityEditPopover } from "@/components/graph/FacilityEditPopover";
+import { ProliferatorEditPopover } from "@/components/graph/ProliferatorEditPopover";
 import { RateEditPopover } from "@/components/graph/RateEditPopover";
 import { GameIcon } from "@/components/ui/GameIcon";
 import { useCalculator } from "@/hooks/use-calculator";
@@ -31,6 +32,13 @@ interface RecipeNodeData extends Record<string, unknown> {
 	isRoot: boolean;
 	targetId: string | null;
 	recipeType: string | null;
+	proliferatorMode: import("@/lib/calculator/models").ProliferatorMode;
+	proliferatorLevel: number;
+	proliferatorConsumption?: {
+		itemId: number;
+		itemsPerCraft: number;
+		itemsPerSecond: number;
+	};
 }
 
 type RecipeNode = Node<RecipeNodeData, "recipe">;
@@ -41,13 +49,16 @@ export function RecipeNode({ data, selected }: NodeProps<RecipeNode>) {
 		updateTargetRate,
 		updateRootFacility,
 		updateElementFacilityType,
+		updateElementProliferator,
 	} = useCalculator();
 	const item = DSPData.getItemById(data.itemId);
 	const facility = data.facilityItemId
 		? DSPData.getItemById(data.facilityItemId)
 		: null;
 
-	const [popover, setPopover] = useState<null | "rate" | "facility">(null);
+	const [popover, setPopover] = useState<
+		null | "rate" | "facility" | "proliferator"
+	>(null);
 
 	const inputHandles = data.inputHandles ?? [];
 	const nodeWidth = Math.max(200, inputHandles.length * 48 + 32);
@@ -178,6 +189,55 @@ export function RecipeNode({ data, selected }: NodeProps<RecipeNode>) {
 						)}
 					</div>
 				) : null}
+
+				{/* Proliferator Section */}
+				{data.hasSource && data.recipeType && (
+					<div className="mt-2 relative">
+						<button
+							type="button"
+							className="flex items-center gap-1 hover:bg-gray-700/50 rounded px-1 -mx-1"
+							onClick={(e) => {
+								e.stopPropagation();
+								setPopover(popover === "proliferator" ? null : "proliferator");
+							}}
+						>
+							{data.proliferatorMode !== "none" &&
+							data.proliferatorLevel > 0 ? (
+								<>
+									<GameIcon
+										name={`Proliferator_Mk.${["I", "II", "III"][data.proliferatorLevel - 1]}`}
+										size={18}
+									/>
+									<span className="text-xs text-gray-400">
+										{data.proliferatorMode === "speed" ? "⚡" : "📦"} Mk.
+										{["I", "II", "III"][data.proliferatorLevel - 1]}
+									</span>
+								</>
+							) : (
+								<span className="text-xs text-gray-500 italic">
+									No proliferator
+								</span>
+							)}
+						</button>
+						{popover === "proliferator" && data.recipeType && (
+							<ProliferatorEditPopover
+								currentMode={data.proliferatorMode}
+								currentLevel={data.proliferatorLevel}
+								currentItemId={data.proliferatorConsumption?.itemId}
+								onConfirm={(mode, level, itemId) => {
+									updateElementProliferator(
+										data.elementId,
+										mode,
+										level,
+										itemId,
+									);
+									setPopover(null);
+								}}
+								onClose={() => setPopover(null)}
+							/>
+						)}
+					</div>
+				)}
 
 				{!data.hasSource && data.canCraft && (
 					<div className="mt-1 text-xs text-gray-400">

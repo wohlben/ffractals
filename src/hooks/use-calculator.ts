@@ -19,6 +19,7 @@ import {
 	setElementToMiningSource,
 	setViewState,
 	updateElementFacilityType,
+	updateElementProliferator,
 	updateNodePosition,
 	updateRootFacility,
 	updateTargetRate,
@@ -54,6 +55,7 @@ export function useCalculator() {
 		updateTargetRate,
 		updateRootFacility,
 		updateElementFacilityType,
+		updateElementProliferator,
 	};
 }
 

@@ -1,5 +1,5 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { GameIcon } from "@/components/ui/GameIcon";
 import {
 	useCalculator,
@@ -19,6 +19,28 @@ export function Sidebar() {
 	const resourceNeeds = useResourceNeeds();
 	const facilitySummary = useFacilitySummary();
 	const location = useLocation();
+	const { elements } = useCalculator();
+
+	// Calculate total proliferator consumption
+	const proliferatorConsumption = useMemo(() => {
+		const consumption = new Map<number, number>();
+		for (const element of Object.values(elements)) {
+			const el = element as {
+				proliferatorConsumption?: { itemId: number; itemsPerSecond: number };
+			};
+			if (el.proliferatorConsumption) {
+				const current = consumption.get(el.proliferatorConsumption.itemId) ?? 0;
+				consumption.set(
+					el.proliferatorConsumption.itemId,
+					current + el.proliferatorConsumption.itemsPerSecond,
+				);
+			}
+		}
+		return Array.from(consumption.entries()).map(([itemId, rate]) => ({
+			itemId,
+			rate,
+		}));
+	}, [elements]);
 
 	const [selectedItemId, setSelectedItemId] = useState<number | null>(null);
 	const [facilityCount, setFacilityCount] = useState(1);
@@ -203,6 +225,24 @@ export function Sidebar() {
 									<span>
 										x{Number.isInteger(count) ? count : count.toFixed(2)}
 									</span>
+								</div>
+							);
+						})}
+					</div>
+				)}
+
+				{proliferatorConsumption.length > 0 && (
+					<div className="mt-2">
+						<div className="text-xs text-gray-400 mb-1">Proliferators</div>
+						{proliferatorConsumption.map(({ itemId, rate }) => {
+							const item = DSPData.getItemById(itemId);
+							return (
+								<div
+									key={itemId}
+									className="flex justify-between text-sm text-gray-300"
+								>
+									<span>{item?.Name}</span>
+									<span>{rate.toFixed(3)}/s</span>
 								</div>
 							);
 						})}

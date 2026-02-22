@@ -53,6 +53,8 @@ export interface FacilityConfig {
 	count: number;
 	speedMultiplier: number;
 	modifier: ModifierConfig;
+	// Explicitly track which proliferator item is being used
+	proliferatorItemId?: number;
 }
 
 export interface CalculationElement {
@@ -66,6 +68,8 @@ export interface CalculationElement {
 	byproducts: Byproduct[];
 	depth: number;
 	parentIds: string[];
+	// Track proliferator consumption for this element
+	proliferatorConsumption?: ProliferatorConsumption;
 }
 
 export interface CalculationTarget {
@@ -142,6 +146,24 @@ export const PROLIFERATOR_PRODUCT_MULTIPLIERS: Record<number, number> = {
 };
 
 export const TICKS_PER_SECOND = 60;
+
+// Proliferator charges per item (how many items can be sprayed per proliferator)
+export const PROLIFERATOR_CHARGES: Record<number, number> = {
+	1141: 12, // Mk.I
+	1142: 24, // Mk.II
+	1143: 60, // Mk.III
+};
+
+// Default charges if specific level not found
+export const DEFAULT_PROLIFERATOR_CHARGES = 12;
+
+export interface ProliferatorConsumption {
+	itemId: number; // Which proliferator item (1141, 1142, 1143)
+	chargesPerCraft: number; // How many charges consumed per craft
+	itemsPerCraft: number; // How many proliferator ITEMS consumed per craft
+	chargesPerSecond: number; // Charges consumed per second at current rate
+	itemsPerSecond: number; // Proliferator ITEMS consumed per second
+}
 
 export function getProliferatorMultiplier(
 	mode: ProliferatorMode,
