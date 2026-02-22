@@ -1,5 +1,8 @@
 import { Handle, type NodeProps, Position } from "@xyflow/react";
-import type React from "react";
+import { useState } from "react";
+import { FacilityEditPopover } from "@/components/graph/FacilityEditPopover";
+import { RateEditPopover } from "@/components/graph/RateEditPopover";
+import { GameIcon } from "@/components/ui/GameIcon";
 import { useCalculator } from "@/hooks/use-calculator";
 import { DSPData } from "@/lib/data/dsp-data";
 import { cn } from "@/lib/utils";
@@ -25,27 +28,24 @@ interface RecipeNodeData {
 	cycleDuration: number;
 	perCycleAmount: number;
 	canCraft: boolean;
-}
-
-const getIconPath = (name: string) =>
-	`/assets/images/Icon_${name.replace(/ /g, "_")}.png`;
-
-function onImgError(e: React.SyntheticEvent<HTMLImageElement>) {
-	const img = e.target as HTMLImageElement;
-	if (!img.dataset.retried) {
-		img.dataset.retried = "1";
-		const src = img.src;
-		img.src = "";
-		img.src = src;
-	}
+	isRoot: boolean;
+	targetId: string | null;
+	recipeType: string | null;
 }
 
 export function RecipeNode({ data, selected }: NodeProps<RecipeNodeData>) {
-	const { selectElement } = useCalculator();
+	const {
+		selectElement,
+		updateTargetRate,
+		updateRootFacility,
+		updateElementFacilityType,
+	} = useCalculator();
 	const item = DSPData.getItemById(data.itemId);
 	const facility = data.facilityItemId
 		? DSPData.getItemById(data.facilityItemId)
 		: null;
+
+	const [popover, setPopover] = useState<null | "rate" | "facility">(null);
 
 	const inputHandles = data.inputHandles ?? [];
 	const nodeWidth = Math.max(200, inputHandles.length * 48 + 32);
@@ -57,7 +57,9 @@ export function RecipeNode({ data, selected }: NodeProps<RecipeNodeData>) {
 				selected ? "border-blue-500" : "border-gray-600",
 			)}
 			style={{ width: nodeWidth }}
-			onClick={() => selectElement(data.elementId)}
+			onClick={() => {
+				if (!popover) selectElement(data.elementId);
+			}}
 		>
 			{/* Output handle — top center */}
 			<Handle
@@ -70,55 +72,100 @@ export function RecipeNode({ data, selected }: NodeProps<RecipeNodeData>) {
 			{/* Node body */}
 			<div className="p-3">
 				<div className="flex items-center gap-2">
-					{item && (
-						<img
-							src={getIconPath(item.Name)}
-							alt={item.Name}
-							width={32}
-							height={32}
-							className="object-contain"
-							onError={onImgError}
-						/>
-					)}
+					{item && <GameIcon name={item.Name} size={32} />}
 					<div className="flex-1 min-w-0">
 						<div className="font-medium text-sm text-gray-100 truncate">
 							{data.itemName}
 						</div>
-						<div className="text-xs text-gray-400">
-							{data.hasSource ? `⏱️ ${data.cycleDuration}s ` : ""}(
-							{data.actualRate.toFixed(2)}/s)
+						<div className="relative">
+							{data.isRoot && data.targetId ? (
+								<button
+									type="button"
+									className="text-xs text-gray-400 hover:text-blue-400 hover:underline"
+									onClick={(e) => {
+										e.stopPropagation();
+										setPopover(popover === "rate" ? null : "rate");
+									}}
+								>
+									{data.hasSource ? `⏱️ ${data.cycleDuration}s ` : ""}(
+									{data.actualRate.toFixed(2)}/s)
+								</button>
+							) : (
+								<div className="text-xs text-gray-400">
+									{data.hasSource ? `⏱️ ${data.cycleDuration}s ` : ""}(
+									{data.actualRate.toFixed(2)}/s)
+								</div>
+							)}
+							{popover === "rate" && data.targetId && (
+								<RateEditPopover
+									currentRate={data.requiredRate}
+									onConfirm={(newRate) => {
+										if (data.targetId) updateTargetRate(data.targetId, newRate);
+										setPopover(null);
+									}}
+									onClose={() => setPopover(null)}
+								/>
+							)}
 						</div>
 					</div>
 				</div>
 
 				{(facility && data.facilityCount > 0) || !data.hasSource ? (
-					<div className="mt-2 flex items-center gap-1">
-						{facility && data.facilityCount > 0 ? (
-							<img
-								src={getIconPath(facility.Name)}
-								alt={facility.Name}
-								width={18}
-								height={18}
-								className="object-contain"
-								onError={onImgError}
+					<div className="mt-2 relative">
+						{data.hasSource && data.recipeType ? (
+							<button
+								type="button"
+								className="flex items-center gap-1 hover:bg-gray-700/50 rounded px-1 -mx-1"
+								onClick={(e) => {
+									e.stopPropagation();
+									setPopover(popover === "facility" ? null : "facility");
+								}}
+							>
+								{facility && data.facilityCount > 0 ? (
+									<GameIcon name={facility.Name} size={18} />
+								) : null}
+								{data.facilityCount > 0 && (
+									<span className="text-xs text-gray-400">
+										×
+										{Number.isInteger(data.facilityCount)
+											? data.facilityCount
+											: data.facilityCount.toFixed(2)}
+									</span>
+								)}
+							</button>
+						) : (
+							<div className="flex items-center gap-1">
+								{facility && data.facilityCount > 0 ? (
+									<GameIcon name={facility.Name} size={18} />
+								) : !data.hasSource ? (
+									<GameIcon name="Interstellar_Logistics_Station" size={18} />
+								) : null}
+								{data.facilityCount > 0 && (
+									<span className="text-xs text-gray-400">
+										×
+										{Number.isInteger(data.facilityCount)
+											? data.facilityCount
+											: data.facilityCount.toFixed(2)}
+									</span>
+								)}
+							</div>
+						)}
+						{popover === "facility" && data.recipeType && (
+							<FacilityEditPopover
+								recipeType={data.recipeType}
+								currentFacilityItemId={data.facilityItemId ?? 0}
+								currentCount={data.facilityCount}
+								isRoot={data.isRoot && !!data.targetId}
+								onConfirm={(facilityItemId, count) => {
+									if (data.isRoot && data.targetId) {
+										updateRootFacility(data.targetId, facilityItemId, count);
+									} else {
+										updateElementFacilityType(data.elementId, facilityItemId);
+									}
+									setPopover(null);
+								}}
+								onClose={() => setPopover(null)}
 							/>
-						) : !data.hasSource ? (
-							<img
-								src={"/assets/images/Icon_Interstellar_Logistics_Station.png"}
-								alt="Interstellar Logistics Station"
-								width={18}
-								height={18}
-								className="object-contain"
-								onError={onImgError}
-							/>
-						) : null}
-						{data.facilityCount > 0 && (
-							<span className="text-xs text-gray-400">
-								×
-								{Number.isInteger(data.facilityCount)
-									? data.facilityCount
-									: data.facilityCount.toFixed(2)}
-							</span>
 						)}
 					</div>
 				) : null}
@@ -148,17 +195,10 @@ export function RecipeNode({ data, selected }: NodeProps<RecipeNodeData>) {
 									transform: "translate(-50%, -50%)",
 									pointerEvents: "none",
 								}}
+								title={`${handle.itemName}${handle.rate > 0 ? `: ${handle.rate.toFixed(2)}/s` : ""}`}
 							>
 								{handle.itemName ? (
-									<img
-										src={getIconPath(handle.itemName)}
-										alt={handle.itemName}
-										width={24}
-										height={24}
-										className="object-contain rounded-sm"
-										title={`${handle.itemName}${handle.rate > 0 ? `: ${handle.rate.toFixed(2)}/s` : ""}`}
-										onError={onImgError}
-									/>
+									<GameIcon name={handle.itemName} size={24} />
 								) : (
 									<div className="w-4 h-4 rounded-full bg-gray-600" />
 								)}

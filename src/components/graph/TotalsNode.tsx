@@ -1,6 +1,11 @@
 import { Handle, type NodeProps, Position } from "@xyflow/react";
-import type React from "react";
+import { useState } from "react";
+import { FacilityEditPopover } from "@/components/graph/FacilityEditPopover";
+import { RateEditPopover } from "@/components/graph/RateEditPopover";
+import { GameIcon } from "@/components/ui/GameIcon";
+import { useCalculator } from "@/hooks/use-calculator";
 import { DSPData } from "@/lib/data/dsp-data";
+import { calculatorStore } from "@/lib/stores/calculator-store";
 import { cn } from "@/lib/utils";
 
 interface InputHandle {
@@ -23,25 +28,43 @@ interface TotalsNodeData {
 	sourceTypes: string[];
 	elementCount: number;
 	inputHandles: InputHandle[];
-}
-
-const getIconPath = (name: string) =>
-	`/assets/images/Icon_${name.replace(/ /g, "_")}.png`;
-
-function onImgError(e: React.SyntheticEvent<HTMLImageElement>) {
-	const img = e.target as HTMLImageElement;
-	if (!img.dataset.retried) {
-		img.dataset.retried = "1";
-		const src = img.src;
-		img.src = "";
-		img.src = src;
-	}
+	isRoot: boolean;
+	targetIds: string[];
+	recipeType: string | null;
 }
 
 export function TotalsNode({ data, selected }: NodeProps<TotalsNodeData>) {
+	const { updateTargetRate, updateRootFacility } = useCalculator();
 	const item = DSPData.getItemById(data.itemId);
 	const inputHandles = data.inputHandles ?? [];
 	const nodeWidth = Math.max(220, inputHandles.length * 48 + 32);
+
+	const [popover, setPopover] = useState<null | "rate" | "facility">(null);
+
+	const isEditable = data.isRoot && data.targetIds.length > 0;
+
+	function handleRateConfirm(newRate: number) {
+		if (data.targetIds.length === 1) {
+			updateTargetRate(data.targetIds[0], newRate);
+		} else if (data.targetIds.length > 1 && data.requiredRate > 0) {
+			const factor = newRate / data.requiredRate;
+			const { targets } = calculatorStore.state;
+			for (const targetId of data.targetIds) {
+				const target = targets.find((t) => t.id === targetId);
+				if (target) {
+					updateTargetRate(targetId, target.targetRate * factor);
+				}
+			}
+		}
+		setPopover(null);
+	}
+
+	function handleFacilityConfirm(facilityItemId: number, count?: number) {
+		for (const targetId of data.targetIds) {
+			updateRootFacility(targetId, facilityItemId, count);
+		}
+		setPopover(null);
+	}
 
 	return (
 		<div
@@ -62,52 +85,97 @@ export function TotalsNode({ data, selected }: NodeProps<TotalsNodeData>) {
 			{/* Node body */}
 			<div className="p-3">
 				<div className="flex items-center gap-2">
-					{item && (
-						<img
-							src={getIconPath(item.Name)}
-							alt={item.Name}
-							width={32}
-							height={32}
-							className="object-contain"
-							onError={onImgError}
-						/>
-					)}
+					{item && <GameIcon name={item.Name} size={32} />}
 					<div className="flex-1 min-w-0">
 						<div className="font-medium text-sm text-gray-100 truncate">
 							{data.itemName}
 						</div>
-						<div className="text-xs text-gray-400">
-							{data.actualRate.toFixed(2)}/s
+						<div className="relative">
+							{isEditable ? (
+								<button
+									type="button"
+									className="text-xs text-gray-400 hover:text-blue-400 hover:underline"
+									onClick={(e) => {
+										e.stopPropagation();
+										setPopover(popover === "rate" ? null : "rate");
+									}}
+								>
+									{data.actualRate.toFixed(2)}/s
+								</button>
+							) : (
+								<div className="text-xs text-gray-400">
+									{data.actualRate.toFixed(2)}/s
+								</div>
+							)}
+							{popover === "rate" && (
+								<RateEditPopover
+									currentRate={data.requiredRate}
+									onConfirm={handleRateConfirm}
+									onClose={() => setPopover(null)}
+								/>
+							)}
 						</div>
 					</div>
 				</div>
 
 				{/* Facilities */}
 				{data.facilities.length > 0 && (
-					<div className="mt-2 flex flex-wrap items-center gap-2">
-						{data.facilities.map((fac) => {
-							const facItem = DSPData.getItemById(fac.itemId);
-							return (
-								<div key={fac.itemId} className="flex items-center gap-1">
-									{facItem && (
-										<img
-											src={getIconPath(facItem.Name)}
-											alt={facItem.Name}
-											width={18}
-											height={18}
-											className="object-contain"
-											onError={onImgError}
-										/>
-									)}
-									<span className="text-xs text-gray-400">
-										x
-										{Number.isInteger(fac.count)
-											? fac.count
-											: fac.count.toFixed(2)}
-									</span>
-								</div>
-							);
-						})}
+					<div className="mt-2 relative">
+						{isEditable && data.recipeType ? (
+							<button
+								type="button"
+								className="flex flex-wrap items-center gap-2 hover:bg-gray-700/50 rounded px-1 -mx-1"
+								onClick={(e) => {
+									e.stopPropagation();
+									setPopover(popover === "facility" ? null : "facility");
+								}}
+							>
+								{data.facilities.map((fac) => {
+									const facItem = DSPData.getItemById(fac.itemId);
+									return (
+										<div key={fac.itemId} className="flex items-center gap-1">
+											{facItem && <GameIcon name={facItem.Name} size={18} />}
+											<span className="text-xs text-gray-400">
+												x
+												{Number.isInteger(fac.count)
+													? fac.count
+													: fac.count.toFixed(2)}
+											</span>
+										</div>
+									);
+								})}
+							</button>
+						) : (
+							<div className="flex flex-wrap items-center gap-2">
+								{data.facilities.map((fac) => {
+									const facItem = DSPData.getItemById(fac.itemId);
+									return (
+										<div key={fac.itemId} className="flex items-center gap-1">
+											{facItem && <GameIcon name={facItem.Name} size={18} />}
+											<span className="text-xs text-gray-400">
+												x
+												{Number.isInteger(fac.count)
+													? fac.count
+													: fac.count.toFixed(2)}
+											</span>
+										</div>
+									);
+								})}
+							</div>
+						)}
+						{popover === "facility" && data.recipeType && (
+							<FacilityEditPopover
+								recipeType={data.recipeType}
+								currentFacilityItemId={data.facilities[0]?.itemId ?? 0}
+								currentCount={data.facilities.reduce(
+									(sum, f) => sum + f.count,
+									0,
+								)}
+								isRoot={true}
+								onConfirm={handleFacilityConfirm}
+								onClose={() => setPopover(null)}
+							/>
+						)}
 					</div>
 				)}
 
@@ -137,17 +205,10 @@ export function TotalsNode({ data, selected }: NodeProps<TotalsNodeData>) {
 									transform: "translate(-50%, -50%)",
 									pointerEvents: "none",
 								}}
+								title={handle.itemName}
 							>
 								{handle.itemName ? (
-									<img
-										src={getIconPath(handle.itemName)}
-										alt={handle.itemName}
-										width={24}
-										height={24}
-										className="object-contain rounded-sm"
-										title={handle.itemName}
-										onError={onImgError}
-									/>
+									<GameIcon name={handle.itemName} size={24} />
 								) : (
 									<div className="w-4 h-4 rounded-full bg-gray-600" />
 								)}

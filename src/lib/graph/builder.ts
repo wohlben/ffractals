@@ -96,6 +96,14 @@ export function buildGraphFromState(
 		}
 	}
 
+	// Build root element ID → targetId lookup
+	const rootElementIds = new Set<string>();
+	const elementToTargetId = new Map<string, string>();
+	for (const target of targets) {
+		rootElementIds.add(target.rootElementId);
+		elementToTargetId.set(target.rootElementId, target.id);
+	}
+
 	// Pass 2: position nodes top-down
 	let rootOffset = ROOT_START_X;
 	for (const target of targets) {
@@ -131,7 +139,12 @@ export function buildGraphFromState(
 			id: element.id,
 			type: nodeType,
 			position: { x: centerX - nodeWidth / 2, y },
-			data: createNodeData(element, elements),
+			data: createNodeData(
+				element,
+				elements,
+				rootElementIds,
+				elementToTargetId,
+			),
 		};
 		nodes.push(node);
 
@@ -165,10 +178,13 @@ export function buildGraphFromState(
 function createNodeData(
 	element: CalculationElement,
 	elements: Record<string, CalculationElement>,
+	rootElementIds: Set<string>,
+	elementToTargetId: Map<string, string>,
 ) {
 	const item = DSPData.getItemById(element.itemId);
 	// Check if this item can be crafted (has recipes)
 	const canCraft = DSPData.getRecipesProducing(element.itemId).length > 0;
+	const isRoot = rootElementIds.has(element.id);
 	const baseData = {
 		elementId: element.id,
 		itemId: element.itemId,
@@ -183,6 +199,12 @@ function createNodeData(
 		cycleDuration: 0,
 		perCycleAmount: 0,
 		canCraft,
+		isRoot,
+		targetId: isRoot ? (elementToTargetId.get(element.id) ?? null) : null,
+		recipeType:
+			element.source?.type === "recipe"
+				? ((element.source as RecipeSource).recipeType ?? null)
+				: null,
 	};
 
 	// Add cycle information based on source type
@@ -243,7 +265,7 @@ function createEdge(
 	parent: CalculationElement,
 	child: CalculationElement,
 ): Edge {
-	// Calculate items per cycle if parent has a recipe
+	// Calculate total items per cycle across all facilities
 	let itemsPerCycle = 0;
 	if (parent.source?.type === "recipe") {
 		const recipeSource = parent.source as RecipeSource;
@@ -251,7 +273,9 @@ function createEdge(
 		if (recipe) {
 			const inputIndex = recipe.Items.indexOf(child.itemId);
 			if (inputIndex !== -1) {
-				itemsPerCycle = recipe.ItemCounts[inputIndex] ?? 0;
+				const perFacility = recipe.ItemCounts[inputIndex] ?? 0;
+				const facilityCount = parent.facility?.count ?? 1;
+				itemsPerCycle = perFacility * facilityCount;
 			}
 		}
 	}

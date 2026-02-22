@@ -22,6 +22,7 @@ interface AggregatedItem {
 	elementCount: number;
 	minDepth: number;
 	supplierItemIds: Set<number>; // items that feed into this one
+	recipeTypes: Set<string>; // recipe types used by elements of this item
 }
 
 interface AggregatedEdge {
@@ -60,6 +61,19 @@ export function buildTotalsGraphFromState(
 ): { nodes: Node[]; edges: Edge[] } {
 	if (targets.length === 0) return { nodes: [], edges: [] };
 
+	// Build root itemId → targetIds mapping
+	const rootItemTargets = new Map<number, string[]>();
+	const rootElementIds = new Set<string>();
+	for (const target of targets) {
+		rootElementIds.add(target.rootElementId);
+		const rootEl = elements[target.rootElementId];
+		if (rootEl) {
+			const existing = rootItemTargets.get(rootEl.itemId) ?? [];
+			existing.push(target.id);
+			rootItemTargets.set(rootEl.itemId, existing);
+		}
+	}
+
 	// Phase 1: Group elements by itemId
 	const reachableIds = collectReachableElementIds(targets, elements);
 	const itemMap = new Map<number, AggregatedItem>();
@@ -79,6 +93,7 @@ export function buildTotalsGraphFromState(
 				elementCount: 0,
 				minDepth: element.depth,
 				supplierItemIds: new Set(),
+				recipeTypes: new Set(),
 			};
 			itemMap.set(element.itemId, agg);
 		}
@@ -90,6 +105,12 @@ export function buildTotalsGraphFromState(
 
 		if (element.source) {
 			agg.sourceTypes.add(element.source.type);
+			if (element.source.type === "recipe") {
+				const recipeSource = element.source as RecipeSource;
+				if (recipeSource.recipeType) {
+					agg.recipeTypes.add(recipeSource.recipeType);
+				}
+			}
 		}
 
 		if (element.facility) {
@@ -128,11 +149,13 @@ export function buildTotalsGraphFromState(
 			// Skip self-loops
 			if (child.itemId === element.itemId) continue;
 
-			// Get items-per-cycle for this input from the recipe
+			// Get total items-per-cycle across all facilities
 			let itemsPerCycle = 0;
 			const inputIndex = recipeItems.indexOf(child.itemId);
 			if (inputIndex !== -1) {
-				itemsPerCycle = recipeItemCounts[inputIndex] ?? 0;
+				const perFacility = recipeItemCounts[inputIndex] ?? 0;
+				const facilityCount = element.facility?.count ?? 1;
+				itemsPerCycle = perFacility * facilityCount;
 			}
 
 			const key = `${child.itemId}-${element.itemId}`;
@@ -238,10 +261,7 @@ export function buildTotalsGraphFromState(
 				} else if (consumers.size === 1) {
 					// Single consumer — align with it
 					const consumerId = consumers.values().next().value!;
-					idealX.set(
-						agg.itemId,
-						positionX.get(consumerId) ?? START_X,
-					);
+					idealX.set(agg.itemId, positionX.get(consumerId) ?? START_X);
 				} else {
 					// Multiple consumers — align with deepest; if tied, average
 					let maxRow = -1;
@@ -300,8 +320,7 @@ export function buildTotalsGraphFromState(
 				let totalWidth = 0;
 				for (let i = 0; i < siblings.length; i++) {
 					if (i > 0) totalWidth += X_GAP;
-					totalWidth +=
-						nodeWidths.get(siblings[i].itemId) ?? NODE_BASE_WIDTH;
+					totalWidth += nodeWidths.get(siblings[i].itemId) ?? NODE_BASE_WIDTH;
 				}
 
 				// Spread evenly centered under consumer
@@ -315,8 +334,7 @@ export function buildTotalsGraphFromState(
 
 			// Build sorted list of all nodes at this depth by ideal X
 			const allAtDepth = [...group].sort(
-				(a, b) =>
-					(idealX.get(a.itemId) ?? 0) - (idealX.get(b.itemId) ?? 0),
+				(a, b) => (idealX.get(a.itemId) ?? 0) - (idealX.get(b.itemId) ?? 0),
 			);
 
 			// Overlap resolution: sweep left-to-right
@@ -359,13 +377,11 @@ export function buildTotalsGraphFromState(
 			const w = nodeWidths.get(agg.itemId) ?? NODE_BASE_WIDTH;
 			const cx = positionX.get(agg.itemId) ?? START_X;
 
-			const supplierArray = Array.from(agg.supplierItemIds).sort(
-				(a, b) => {
-					const nameA = DSPData.getItemById(a)?.Name ?? "";
-					const nameB = DSPData.getItemById(b)?.Name ?? "";
-					return nameA.localeCompare(nameB);
-				},
-			);
+			const supplierArray = Array.from(agg.supplierItemIds).sort((a, b) => {
+				const nameA = DSPData.getItemById(a)?.Name ?? "";
+				const nameB = DSPData.getItemById(b)?.Name ?? "";
+				return nameA.localeCompare(nameB);
+			});
 
 			const facilityEntries: Array<{
 				itemId: number;
@@ -380,6 +396,11 @@ export function buildTotalsGraphFromState(
 					name: facItem?.Name ?? "",
 				});
 			}
+
+			const isRoot = agg.minDepth === 0;
+			const targetIds = rootItemTargets.get(agg.itemId) ?? [];
+			const recipeType =
+				agg.recipeTypes.size === 1 ? Array.from(agg.recipeTypes)[0] : null;
 
 			nodes.push({
 				id: `totals-${agg.itemId}`,
@@ -396,6 +417,9 @@ export function buildTotalsGraphFromState(
 					facilities: facilityEntries,
 					sourceTypes: Array.from(agg.sourceTypes),
 					elementCount: agg.elementCount,
+					isRoot,
+					targetIds,
+					recipeType,
 					inputHandles: supplierArray.map((supplierId) => {
 						const suppItem = DSPData.getItemById(supplierId);
 						return {

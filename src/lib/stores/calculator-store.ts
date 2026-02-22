@@ -10,9 +10,13 @@ import type {
 	ViewState,
 } from "../calculator/models";
 import {
+	calculateInputRate,
+	calculateOutputRate,
+	calculateRequiredFacilities,
 	createBaseElement,
 	expandElementWithRecipe,
 	generateElementId,
+	recalculateSubtree,
 	setElementToExtraction,
 	setElementToMining,
 } from "../calculator/utils";
@@ -501,4 +505,221 @@ function getContext() {
 		getMiningTime: (itemId: number) => DSPData.getMiningTime(itemId),
 		getExtractionSpeed: (itemId: number) => DSPData.getExtractionSpeed(itemId),
 	};
+}
+
+export function updateTargetRate(targetId: string, newRate: number): void {
+	calculatorStore.setState((state) => {
+		const target = state.targets.find((t) => t.id === targetId);
+		if (!target) return state;
+
+		const rootElement = state.elements[target.rootElementId];
+		if (!rootElement) return state;
+
+		const updatedRoot = { ...rootElement, requiredRate: newRate };
+		const elementsWithRoot = {
+			...state.elements,
+			[rootElement.id]: updatedRoot,
+		};
+
+		const subtreeUpdates = recalculateSubtree(
+			rootElement.id,
+			elementsWithRoot,
+			getContext(),
+		);
+
+		return {
+			...state,
+			targets: state.targets.map((t) =>
+				t.id === targetId ? { ...t, targetRate: newRate } : t,
+			),
+			elements: { ...elementsWithRoot, ...subtreeUpdates },
+		};
+	});
+}
+
+export function updateRootFacility(
+	targetId: string,
+	facilityItemId: number,
+	explicitCount?: number,
+): void {
+	calculatorStore.setState((state) => {
+		const target = state.targets.find((t) => t.id === targetId);
+		if (!target) return state;
+
+		const rootElement = state.elements[target.rootElementId];
+		if (!rootElement?.source || !rootElement.facility) return state;
+
+		if (rootElement.source.type !== "recipe") return state;
+
+		const recipeSource =
+			rootElement.source as import("../calculator/models").RecipeSource;
+		const recipe = getContext().getRecipeById(recipeSource.recipeId);
+		if (!recipe) return state;
+
+		const targetOutput = recipe.outputs.find(
+			(o) => o.itemId === rootElement.itemId,
+		);
+		if (!targetOutput) return state;
+
+		const speedMultiplier =
+			BuildingDetailsService.getSpeedMultiplier(facilityItemId) ?? 1;
+		const modifier = rootElement.facility.modifier;
+
+		const outputRatePerFacility = calculateOutputRate(
+			targetOutput.count,
+			recipe.timeSpend,
+			speedMultiplier,
+			modifier,
+		);
+
+		const count = explicitCount ?? rootElement.facility.count;
+		const newRate = outputRatePerFacility * count;
+
+		const updatedRoot: CalculationElement = {
+			...rootElement,
+			requiredRate: newRate,
+			actualRate: newRate,
+			facility: {
+				...rootElement.facility,
+				itemId: facilityItemId,
+				speedMultiplier,
+				count,
+			},
+		};
+
+		const elementsWithRoot = {
+			...state.elements,
+			[rootElement.id]: updatedRoot,
+		};
+
+		// Recalculate children's requiredRate from root's new count
+		for (let i = 0; i < rootElement.inputs.length; i++) {
+			const childId = rootElement.inputs[i];
+			const child = elementsWithRoot[childId];
+			if (!child) continue;
+			const input = recipe.inputs[i];
+			if (!input) continue;
+
+			const inputRate =
+				calculateInputRate(
+					input.count,
+					recipe.timeSpend,
+					speedMultiplier,
+					modifier,
+				) * count;
+
+			elementsWithRoot[childId] = { ...child, requiredRate: inputRate };
+		}
+
+		// Propagate through subtree
+		const subtreeUpdates: Record<string, CalculationElement> = {};
+		for (const childId of rootElement.inputs) {
+			const childUpdates = recalculateSubtree(
+				childId,
+				elementsWithRoot,
+				getContext(),
+			);
+			Object.assign(subtreeUpdates, childUpdates);
+		}
+
+		// Recalculate byproducts for root
+		const byproducts = recipe.outputs
+			.filter((o) => o.itemId !== rootElement.itemId)
+			.map((output) => ({
+				itemId: output.itemId,
+				rate:
+					calculateOutputRate(
+						output.count,
+						recipe.timeSpend,
+						speedMultiplier,
+						modifier,
+					) * count,
+				consumedBy: [] as string[],
+			}));
+
+		const finalRoot = {
+			...updatedRoot,
+			byproducts,
+		};
+
+		return {
+			...state,
+			targets: state.targets.map((t) =>
+				t.id === targetId ? { ...t, targetRate: newRate } : t,
+			),
+			elements: {
+				...elementsWithRoot,
+				...subtreeUpdates,
+				[rootElement.id]: finalRoot,
+			},
+		};
+	});
+}
+
+export function updateElementFacilityType(
+	elementId: string,
+	facilityItemId: number,
+): void {
+	calculatorStore.setState((state) => {
+		const element = state.elements[elementId];
+		if (!element?.source || !element.facility) return state;
+		if (element.source.type !== "recipe") return state;
+
+		const recipeSource =
+			element.source as import("../calculator/models").RecipeSource;
+		const recipe = getContext().getRecipeById(recipeSource.recipeId);
+		if (!recipe) return state;
+
+		const targetOutput = recipe.outputs.find(
+			(o) => o.itemId === element.itemId,
+		);
+		if (!targetOutput) return state;
+
+		const speedMultiplier =
+			BuildingDetailsService.getSpeedMultiplier(facilityItemId) ?? 1;
+		const modifier = element.facility.modifier;
+
+		const outputRate = calculateOutputRate(
+			targetOutput.count,
+			recipe.timeSpend,
+			speedMultiplier,
+			modifier,
+		);
+
+		const facilitiesNeeded = calculateRequiredFacilities(
+			element.requiredRate,
+			outputRate,
+		);
+
+		const byproducts = recipe.outputs
+			.filter((o) => o.itemId !== element.itemId)
+			.map((output) => ({
+				itemId: output.itemId,
+				rate:
+					calculateOutputRate(
+						output.count,
+						recipe.timeSpend,
+						speedMultiplier,
+						modifier,
+					) * facilitiesNeeded,
+				consumedBy: [] as string[],
+			}));
+
+		const updated: CalculationElement = {
+			...element,
+			actualRate: outputRate * facilitiesNeeded,
+			facility: {
+				...element.facility,
+				itemId: facilityItemId,
+				speedMultiplier,
+				count: facilitiesNeeded,
+			},
+			byproducts,
+		};
+
+		return {
+			...state,
+			elements: { ...state.elements, [elementId]: updated },
+		};
+	});
 }

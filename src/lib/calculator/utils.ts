@@ -3,7 +3,6 @@ import type {
 	CalculationContext,
 	CalculationElement,
 	CalculationTarget,
-	ElementSource,
 	ExtractionSource,
 	FacilityConfig,
 	FacilityData,
@@ -506,6 +505,124 @@ function collectRateBreakdown(
 			collectRateBreakdown(child, elements, itemMap);
 		}
 	}
+}
+
+export function recalculateSubtree(
+	elementId: string,
+	elements: Record<string, CalculationElement>,
+	context: CalculationContext,
+): Record<string, CalculationElement> {
+	const updates: Record<string, CalculationElement> = {};
+	const visited = new Set<string>();
+
+	function walk(id: string): void {
+		if (visited.has(id)) return;
+		visited.add(id);
+
+		const element = updates[id] ?? elements[id];
+		if (!element || !element.source) return;
+
+		let updated: CalculationElement;
+
+		if (element.source.type === "recipe") {
+			const recipeSource = element.source as RecipeSource;
+			const recipe = context.getRecipeById(recipeSource.recipeId);
+			if (!recipe || !element.facility) return;
+
+			const targetOutput = recipe.outputs.find(
+				(o) => o.itemId === element.itemId,
+			);
+			if (!targetOutput) return;
+
+			const outputRate = calculateOutputRate(
+				targetOutput.count,
+				recipe.timeSpend,
+				element.facility.speedMultiplier,
+				element.facility.modifier,
+			);
+
+			const facilitiesNeeded = calculateRequiredFacilities(
+				element.requiredRate,
+				outputRate,
+			);
+
+			// Recalculate children's requiredRate based on new facility count
+			for (let i = 0; i < element.inputs.length; i++) {
+				const childId = element.inputs[i];
+				const child = updates[childId] ?? elements[childId];
+				if (!child) continue;
+
+				const input = recipe.inputs[i];
+				if (!input) continue;
+
+				const inputRate =
+					calculateInputRate(
+						input.count,
+						recipe.timeSpend,
+						element.facility.speedMultiplier,
+						element.facility.modifier,
+					) * facilitiesNeeded;
+
+				updates[childId] = { ...child, requiredRate: inputRate };
+			}
+
+			const facility = element.facility;
+			const byproducts = recipe.outputs
+				.filter((o) => o.itemId !== element.itemId)
+				.map((output) => ({
+					itemId: output.itemId,
+					rate:
+						calculateOutputRate(
+							output.count,
+							recipe.timeSpend,
+							facility.speedMultiplier,
+							facility.modifier,
+						) * facilitiesNeeded,
+					consumedBy: [] as string[],
+				}));
+
+			updated = {
+				...element,
+				actualRate: outputRate * facilitiesNeeded,
+				facility: { ...facility, count: facilitiesNeeded },
+				byproducts,
+			};
+		} else if (element.source.type === "mining") {
+			const miningSource = element.source as MiningSource;
+			const rate = calculateMiningRate(miningSource.miningTime);
+			const facilitiesNeeded = rate > 0 ? element.requiredRate / rate : 0;
+			updated = {
+				...element,
+				actualRate: rate * facilitiesNeeded,
+				facility: element.facility
+					? { ...element.facility, count: facilitiesNeeded }
+					: null,
+			};
+		} else if (element.source.type === "extraction") {
+			const extractionSource = element.source as ExtractionSource;
+			const rate = calculateExtractionRate(extractionSource.extractionSpeed);
+			const facilitiesNeeded = rate > 0 ? element.requiredRate / rate : 0;
+			updated = {
+				...element,
+				actualRate: rate * facilitiesNeeded,
+				facility: element.facility
+					? { ...element.facility, count: facilitiesNeeded }
+					: null,
+			};
+		} else {
+			return;
+		}
+
+		updates[id] = updated;
+
+		// Recurse into children
+		for (const childId of element.inputs) {
+			walk(childId);
+		}
+	}
+
+	walk(elementId);
+	return updates;
 }
 
 export function flattenGraph(

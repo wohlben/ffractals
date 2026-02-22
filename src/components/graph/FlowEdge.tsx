@@ -4,16 +4,25 @@ import {
 	type EdgeProps,
 	getBezierPath,
 } from "@xyflow/react";
+import { GameIcon } from "@/components/ui/GameIcon";
+import { DSPData } from "@/lib/data/dsp-data";
 
-// Controls how the rate value is displayed on edges.
-// "number" = plain numeric value (default), "rate" = value with /s suffix.
-type EdgeDisplayMode = "number" | "rate";
+const BELT_TIERS = [
+	{ itemId: 2001, speed: 6, name: "Conveyor Belt Mk.I" },
+	{ itemId: 2002, speed: 12, name: "Conveyor Belt Mk.II" },
+	{ itemId: 2003, speed: 30, name: "Conveyor Belt Mk.III" },
+] as const;
 
-const EDGE_DISPLAY_MODE: EdgeDisplayMode = "number";
-
-function formatEdgeLabel(rate: number, mode: EdgeDisplayMode): string {
-	if (mode === "rate") return `${rate.toFixed(2)}/s`;
-	return rate.toFixed(2);
+function getBeltRequirement(rate: number): { name: string; count: number } {
+	// Find the cheapest belt tier that can handle the rate with a single belt,
+	// otherwise use the best tier and show how many are needed
+	for (const belt of BELT_TIERS) {
+		if (rate <= belt.speed) {
+			return { name: belt.name, count: 1 };
+		}
+	}
+	const best = BELT_TIERS[BELT_TIERS.length - 1];
+	return { name: best.name, count: Math.ceil(rate / best.speed) };
 }
 
 interface FlowEdgeData {
@@ -41,6 +50,12 @@ export function FlowEdge({
 		targetPosition,
 	});
 
+	const rate = data?.rate ?? 0;
+	const itemId = data?.itemId ?? 0;
+	const itemsPerCycle = data?.itemsPerCycle ?? 0;
+	const item = itemId ? DSPData.getItemById(itemId) : null;
+	const belt = rate > 0 ? getBeltRequirement(rate) : null;
+
 	return (
 		<>
 			<BaseEdge
@@ -54,17 +69,49 @@ export function FlowEdge({
 						position: "absolute",
 						transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
 						background: "#1f2937",
-						padding: "2px 6px",
-						borderRadius: "4px",
+						padding: "4px 8px",
+						borderRadius: "6px",
 						fontSize: "11px",
 						color: "#9ca3af",
 						pointerEvents: "none",
+						border: "1px solid #374151",
 					}}
 					className="nodrag nopan"
 				>
-					{data?.itemsPerCycle > 0
-						? data.itemsPerCycle
-						: formatEdgeLabel(data?.rate ?? 0, EDGE_DISPLAY_MODE)}
+					<div
+						style={{
+							display: "grid",
+							gridTemplateColumns: "auto 16px auto",
+							alignItems: "center",
+							gap: "2px 4px",
+						}}
+					>
+						{/* Row 1: [icon] count */}
+						{item && (
+							<>
+								<span />
+								<GameIcon name={item.Name} size={16} />
+								<span className="text-gray-300">
+									{itemsPerCycle > 0
+									? Number.isInteger(itemsPerCycle)
+										? itemsPerCycle
+										: itemsPerCycle.toFixed(2)
+									: ""}
+								</span>
+							</>
+						)}
+
+						{/* Row 2: belt count + belt icon + rate/s */}
+						{belt && (
+							<>
+								<span className="text-gray-300 text-right">
+									{belt.count > 1 ? `${belt.count}x` : ""}
+								</span>
+								<GameIcon name={belt.name} size={16} />
+								<span className="text-gray-400">{rate.toFixed(2)}/s</span>
+							</>
+						)}
+					</div>
 				</div>
 			</EdgeLabelRenderer>
 		</>

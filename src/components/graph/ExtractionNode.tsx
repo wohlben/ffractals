@@ -1,17 +1,10 @@
 import { Handle, type NodeProps, Position } from "@xyflow/react";
-import type React from "react";
+import { useState } from "react";
+import { RateEditPopover } from "@/components/graph/RateEditPopover";
+import { GameIcon } from "@/components/ui/GameIcon";
+import { useCalculator } from "@/hooks/use-calculator";
 import { DSPData } from "@/lib/data/dsp-data";
 import { cn } from "@/lib/utils";
-
-function onImgError(e: React.SyntheticEvent<HTMLImageElement>) {
-	const img = e.target as HTMLImageElement;
-	if (!img.dataset.retried) {
-		img.dataset.retried = "1";
-		const src = img.src;
-		img.src = "";
-		img.src = src;
-	}
-}
 
 interface ExtractionNodeData {
 	elementId: string;
@@ -22,16 +15,17 @@ interface ExtractionNodeData {
 	facilityCount: number;
 	cycleDuration: number;
 	perCycleAmount: number;
+	isRoot: boolean;
+	targetId: string | null;
 }
 
 export function ExtractionNode({
 	data,
 	selected,
 }: NodeProps<ExtractionNodeData>) {
+	const { updateTargetRate } = useCalculator();
 	const item = DSPData.getItemById(data.itemId);
-
-	const getIconPath = (itemName: string) =>
-		`/assets/images/Icon_${itemName.replace(/ /g, "_")}.png`;
+	const [showRate, setShowRate] = useState(false);
 
 	return (
 		<div
@@ -49,16 +43,7 @@ export function ExtractionNode({
 			/>
 
 			<div className="flex items-center gap-2">
-				{item && (
-					<img
-						src={getIconPath(item.Name)}
-						alt={item.Name}
-						width={32}
-						height={32}
-						className="object-contain"
-						onError={onImgError}
-					/>
-				)}
+				{item && <GameIcon name={item.Name} size={32} />}
 				<div className="flex-1 min-w-0">
 					<div className="font-medium text-sm text-gray-100 truncate">
 						{data.itemName}
@@ -68,8 +53,33 @@ export function ExtractionNode({
 			</div>
 
 			<div className="mt-2 text-xs text-gray-400 space-y-1">
-				<div>
-					⏱️ {data.cycleDuration}s ({data.actualRate.toFixed(2)}/s)
+				<div className="relative">
+					{data.isRoot && data.targetId ? (
+						<button
+							type="button"
+							className="hover:text-blue-400 hover:underline"
+							onClick={(e) => {
+								e.stopPropagation();
+								setShowRate(!showRate);
+							}}
+						>
+							⏱️ {data.cycleDuration}s ({data.actualRate.toFixed(2)}/s)
+						</button>
+					) : (
+						<span>
+							⏱️ {data.cycleDuration}s ({data.actualRate.toFixed(2)}/s)
+						</span>
+					)}
+					{showRate && data.targetId && (
+						<RateEditPopover
+							currentRate={data.requiredRate}
+							onConfirm={(newRate) => {
+								if (data.targetId) updateTargetRate(data.targetId, newRate);
+								setShowRate(false);
+							}}
+							onClose={() => setShowRate(false)}
+						/>
+					)}
 				</div>
 				{data.facilityCount > 0 && (
 					<div>

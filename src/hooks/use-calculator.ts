@@ -17,7 +17,10 @@ import {
 	setElementToExtractionSource,
 	setElementToMiningSource,
 	setViewState,
+	updateElementFacilityType,
 	updateNodePosition,
+	updateRootFacility,
+	updateTargetRate,
 	updateTotalsNodePosition,
 } from "@/lib/stores/calculator-store";
 
@@ -46,6 +49,9 @@ export function useCalculator() {
 		updateTotalsNodePosition,
 		setViewState,
 		selectElement,
+		updateTargetRate,
+		updateRootFacility,
+		updateElementFacilityType,
 	};
 }
 
